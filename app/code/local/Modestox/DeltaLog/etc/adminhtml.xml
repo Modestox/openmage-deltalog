@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Modestox CMS - E-commerce Platform
+ *
+ * @copyright Copyright (c) 2026 Sergey Kuzmitsky
+ * @license   AGPL-3.0-or-later
+ * @link      https://github.com/Modestox/modestox
+ */
+-->
+<config>
+    <menu>
+        <system>
+            <children>
+                <modestox_deltalog translate="title" module="modestox_deltalog">
+                    <title>Delta Log</title>
+                    <sort_order>90</sort_order>
+                    <children>
+                        <history translate="title" module="modestox_deltalog">
+                            <title>Change Log History</title>
+                            <action>adminhtml/history/index</action>
+                            <sort_order>10</sort_order>
+                        </history>
+                        <rule translate="title" module="modestox_deltalog">
+                            <title>Tracking Rules Constructor</title>
+                            <action>adminhtml/rule/index</action>
+                            <sort_order>20</sort_order>
+                        </rule>
+                    </children>
+                </modestox_deltalog>
+            </children>
+        </system>
+    </menu>
+    <acl>
+        <resources>
+            <admin>
+                <children>
+                    <system>
+                        <children>
+                            <modestox_deltalog translate="title" module="modestox_deltalog">
+                                <title>Delta Log</title>
+                                <sort_order>90</sort_order>
+                                <children>
+                                    <history translate="title" module="modestox_deltalog">
+                                        <title>View History Entries</title>
+                                        <sort_order>10</sort_order>
+                                    </history>
+                                    <rule translate="title" module="modestox_deltalog">
+                                        <title>Manage Tracking Rules</title>
+                                        <sort_order>20</sort_order>
+                                    </rule>
+                                </children>
+                            </modestox_deltalog>
+                            <config>
+                                <children>
+                                    <modestox_deltalog translate="title" module="modestox_deltalog">
+                                        <title>Delta Log Settings Section</title>
+                                    </modestox_deltalog>
+                                </children>
+                            </config>
+                        </children>
+                    </system>
+                </children>
+            </admin>
+        </resources>
+    </acl>
+</config>

@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <Modestox_DeltaLog>
+            <active>true</active>
+            <codePool>local</codePool>
+        </Modestox_DeltaLog>
+    </modules>
+</config>

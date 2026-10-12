@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Modestox CMS - E-commerce Platform
+ *
+ * @copyright Copyright (c) 2026 Sergey Kuzmitsky
+ * @license   AGPL-3.0-or-later
+ * @link      https://github.com/Modestox/modestox
+ */
+-->
+<config>
+    <modules>
+        <Modestox_DeltaLog>
+            <version>1.0.1</version>
+        </Modestox_DeltaLog>
+    </modules>
+    <global>
+        <blocks>
+            <modestox_deltalog>
+                <class>Modestox_DeltaLog_Block</class>
+            </modestox_deltalog>
+        </blocks>
+        <helpers>
+            <modestox_deltalog>
+                <class>Modestox_DeltaLog_Helper</class>
+            </modestox_deltalog>
+        </helpers>
+        <models>
+            <modestox_deltalog>
+                <class>Modestox_DeltaLog_Model</class>
+                <resourceModel>modestox_deltalog_resource</resourceModel>
+            </modestox_deltalog>
+            <modestox_deltalog_resource>
+                <class>Modestox_DeltaLog_Model_Resource</class>
+                <entities>
+                    <entry>
+                        <table>modestox_delta_log_entry</table>
+                    </entry>
+                    <rule>
+                        <table>modestox_delta_log_rule</table>
+                    </rule>
+                    <rule_field>
+                        <table>modestox_delta_log_rule_field</table>
+                    </rule_field>
+                </entities>
+            </modestox_deltalog_resource>
+        </models>
+        <resources>
+            <modestox_deltalog_setup>
+                <setup>
+                    <module>Modestox_DeltaLog</module>
+                </setup>
+            </modestox_deltalog_setup>
+        </resources>
+        <events>
+            <model_save_after>
+                <observers>
+                    <modestox_deltalog_save_after>
+                        <type>singleton</type>
+                        <class>modestox_deltalog/observer</class>
+                        <method>executeOnModelSaveAfter</method>
+                    </modestox_deltalog_save_after>
+                </observers>
+            </model_save_after>
+        </events>
+
+        <!-- <tracked_entities>
+            <customer_entity>
+                <label>Customer Account</label>
+                <model_alias>customer/customer</model_alias>
+                <table_name>customer_entity</table_name>
+                <title_field>email</title_field>
+                <edit_url_route>adminhtml/customer/edit</edit_url_route>
+                <fields>
+                    <website_id>
+                        <label>Associated Website</label>
+                        <source_model>adminhtml/system_config_source_website</source_model>
+                    </website_id>
+
+                    <created_in>Created From</created_in>
+
+                    <group_id>
+                        <label>Group</label>
+                        <source_model>customer/customer_attribute_source_group</source_model>
+                    </group_id>
+
+                    <disable_auto_group_change>
+                        <label>Disable Automatic Group Change Based on VAT ID</label>
+                        <options>
+                            <v_1>Yes</v_1>
+                            <v_0>No</v_0>
+                        </options>
+                    </disable_auto_group_change>
+
+                    <prefix>Prefix</prefix>
+                    <firstname>First Name</firstname>
+                    <middlename>Middle Name/Initial</middlename>
+                    <lastname>Last Name</lastname>
+                    <suffix>Suffix</suffix>
+                    <email>Email</email>
+
+                    <dob type="date">Date of Birth</dob>
+
+                    <taxvat>VAT Number</taxvat>
+
+                    <gender>
+                        <label>Gender</label>
+                        <options>
+                            <v_1>Male</v_1>
+                            <v_2>Female</v_2>
+                        </options>
+                    </gender>
+
+                    <shops_ids>
+                        <label>Assigned Shops</label>
+                        <source_model>shopanalytic/system_config_source_shop_all</source_model>
+                    </shops_ids>
+                </fields>
+            </customer_entity>
+        </tracked_entities> -->
+
+    </global>
+
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <Modestox_DeltaLog before="Mage_Adminhtml">Modestox_DeltaLog_Adminhtml</Modestox_DeltaLog>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
+
+    <adminhtml>
+        <layout>
+            <updates>
+                <modestox_deltalog>
+                    <file>modestox/modestox_deltalog.xml</file>
+                </modestox_deltalog>
+            </updates>
+        </layout>
+    </adminhtml>
+
+    <default>
+        <modestox_deltalog>
+            <general>
+                <enabled>1</enabled>
+            </general>
+        </modestox_deltalog>
+    </default>
+</config>

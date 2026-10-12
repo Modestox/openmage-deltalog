@@ -1,0 +1,187 @@
+<?php
+/**
+ * Modestox CMS - E-commerce Platform
+ *
+ * @copyright Copyright (c) 2026 Sergey Kuzmitsky
+ * @license   AGPL-3.0-or-later
+ * @link      https://github.com/Modestox/modestox
+ */
+
+/** @var Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Tab_Fields $this */
+$fields = $this->getRuleFields();
+$helper = Mage::helper('modestox_deltalog');
+
+$cache = Mage::app()->loadCache(Modestox_DeltaLog_Model_Compiler::CACHE_KEY);
+$rules = unserialize($cache, ['allowed_classes' => false]);
+
+// echo '<pre>';
+// print_r($rules);
+// echo '</pre>';
+//die();
+?>
+
+<div class="entry-edit">
+    <div class="entry-edit-head">
+        <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $helper->__('Tracked Fields Configuration'); ?></h4>
+        <div class="form-buttons">
+            <button type="button" class="button" onclick="loadAvailableFields()">
+                <span><span><?php echo $helper->__('Fetch Fields From Table / EAV'); ?></span></span>
+            </button>
+            <button type="button" class="button add" onclick="addRuleFieldRow()">
+                <span><span><?php echo $helper->__('Add Field Manually'); ?></span></span>
+            </button>
+        </div>
+    </div>
+    <div class="fieldset">
+        <div class="grid">
+            <div class="hor-scroll">
+                <table cellspacing="0" class="data" id="rule_fields_table">
+                    <thead>
+                    <tr class="headings">
+                        <th style="width: 150px;"><?php echo $helper->__('Field Code'); ?> <span class="required">*</span></th>
+                        <th style="width: 180px;"><?php echo $helper->__('Field Label'); ?> <span class="required">*</span></th>
+                        <th style="width: 120px;"><?php echo $helper->__('Value Type'); ?></th>
+                        <th style="width: 200px;"><?php echo $helper->__('Source Model'); ?></th>
+                        <th style="width: 200px;"><?php echo $helper->__('Helper Method'); ?></th>
+                        <th style="width: 80px;"><?php echo $helper->__('Status'); ?></th>
+                        <th style="width: 70px;" class="a-center"><?php echo $helper->__('Action'); ?></th>
+                    </tr>
+                    </thead>
+                    <tbody id="rule_fields_container">
+                    <?php if (!empty($fields)): ?>
+                        <?php foreach ($fields as $field): ?>
+                            <tr id="field_row_<?php echo $field->getId(); ?>">
+                                <td>
+                                    <input type="text" name="fields[<?php echo $field->getId(); ?>][field_code]" value="<?php echo $this->escapeHtml($field->getFieldCode()); ?>" class="input-text required-entry" />
+                                </td>
+                                <td>
+                                    <input type="text" name="fields[<?php echo $field->getId(); ?>][field_label]" value="<?php echo $this->escapeHtml($field->getFieldLabel()); ?>" class="input-text required-entry" />
+                                </td>
+                                <td>
+                                    <select name="fields[<?php echo $field->getId(); ?>][value_type]" class="select">
+                                        <option value="text" <?php if ($field->getValueType() === 'text') {
+                                            echo 'selected="selected"';
+                                        } ?>><?php echo $helper->__('Text'); ?></option>
+                                        <option value="date" <?php if ($field->getValueType() === 'date') {
+                                            echo 'selected="selected"';
+                                        } ?>><?php echo $helper->__('Date'); ?></option>
+                                        <option value="select" <?php if ($field->getValueType() === 'select') {
+                                            echo 'selected="selected"';
+                                        } ?>><?php echo $helper->__('Select'); ?></option>
+                                        <option value="multiselect" <?php if ($field->getValueType() === 'multiselect') {
+                                            echo 'selected="selected"';
+                                        } ?>><?php echo $helper->__('Multiselect'); ?></option>
+                                        <option value="boolean" <?php if ($field->getValueType() === 'boolean') {
+                                            echo 'selected="selected"';
+                                        } ?>><?php echo $helper->__('Boolean'); ?></option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" name="fields[<?php echo $field->getId(); ?>][source_model]" value="<?php echo $this->escapeHtml($field->getSourceModel()); ?>" class="input-text" placeholder="e.g. customer/attribute_source_group" />
+                                </td>
+                                <td>
+                                    <input type="text" name="fields[<?php echo $field->getId(); ?>][helper_method]" value="<?php echo $this->escapeHtml($field->getHelperMethod()); ?>" class="input-text" placeholder="e.g. deltalog/data::getOptions" />
+                                </td>
+                                <td>
+                                    <select name="fields[<?php echo $field->getId(); ?>][is_active]" class="select">
+                                        <option value="1" <?php if ((int)$field->getIsActive() === 1) {
+                                            echo 'selected="selected"';
+                                        } ?>><?php echo $helper->__('Active'); ?></option>
+                                        <option value="0" <?php if ((int)$field->getIsActive() === 0) {
+                                            echo 'selected="selected"';
+                                        } ?>><?php echo $helper->__('Disabled'); ?></option>
+                                    </select>
+                                </td>
+                                <td class="a-center">
+                                    <button type="button" class="button delete" onclick="removeRuleFieldRow(this)">
+                                        <span><span><?php echo $helper->__('Delete'); ?></span></span>
+                                    </button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    //<![CDATA[
+    var fieldRowCounter = 0;
+
+    function addRuleFieldRow(data) {
+        data = data || {};
+        var id = 'new_' + fieldRowCounter++;
+        var html = '<tr id="field_row_' + id + '">' +
+            '<td><input type="text" name="fields[' + id + '][field_code]" value="' + (data.code || '') + '" class="input-text required-entry" /></td>' +
+            '<td><input type="text" name="fields[' + id + '][field_label]" value="' + (data.label || '') + '" class="input-text required-entry" /></td>' +
+            '<td>' +
+            '<select name="fields[' + id + '][value_type]" class="select">' +
+            '<option value="text"' + (data.type === 'text' ? ' selected' : '') + '><?php echo $helper->__('Text'); ?></option>' +
+            '<option value="date"' + (data.type === 'date' ? ' selected' : '') + '><?php echo $helper->__('Date'); ?></option>' +
+            '<option value="select"' + (data.type === 'select' ? ' selected' : '') + '><?php echo $helper->__('Select'); ?></option>' +
+            '<option value="multiselect"' + (data.type === 'multiselect' ? ' selected' : '') + '><?php echo $helper->__('Multiselect'); ?></option>' +
+            '<option value="boolean"' + (data.type === 'boolean' ? ' selected' : '') + '><?php echo $helper->__('Boolean'); ?></option>' +
+            '</select>' +
+            '</td>' +
+            '<td><input type="text" name="fields[' + id + '][source_model]" value="' + (data.source_model || '') + '" class="input-text" /></td>' +
+            '<td><input type="text" name="fields[' + id + '][helper_method]" value="" class="input-text" /></td>' +
+            '<td>' +
+            '<select name="fields[' + id + '][is_active]" class="select">' +
+            '<option value="1"><?php echo $helper->__('Active'); ?></option>' +
+            '<option value="0"><?php echo $helper->__('Disabled'); ?></option>' +
+            '</select>' +
+            '</td>' +
+            '<td class="a-center">' +
+            '<button type="button" class="button delete" onclick="removeRuleFieldRow(this)"><span><span><?php echo $helper->__('Delete'); ?></span></span></button>' +
+            '</td>' +
+            '</tr>';
+
+        Element.insert($('rule_fields_container'), {bottom: html});
+    }
+
+    function removeRuleFieldRow(btn) {
+        var row = $(btn).up('tr');
+        if (row) {
+            row.remove();
+        }
+    }
+
+    function loadAvailableFields() {
+        var tableNameInput = $('table_name');
+        var entityTypeInput = $('entity_type');
+
+        var tableName = tableNameInput ? tableNameInput.value.strip() : '';
+        var entityType = entityTypeInput ? entityTypeInput.value.strip() : 'flat';
+
+        if (!tableName || tableName === '') {
+            alert('<?php echo $helper->__("Please fill in Database Table Name / Entity Code on the General Configuration tab first."); ?>');
+            return;
+        }
+
+        new Ajax.Request('<?php echo Mage::helper("adminhtml")->getUrl("*/*/loadFields"); ?>', {
+            method: 'get',
+            parameters: {
+                table_name: tableName,
+                entity_type: entityType
+            },
+            onSuccess: function(response) {
+                try {
+                    var result = response.responseText.evalJSON();
+                    if (result && result.length > 0) {
+                        result.each(function(field) {
+                            addRuleFieldRow(field);
+                        });
+                    } else {
+                        alert('<?php echo $helper->__("No fields found or table does not exist."); ?>');
+                    }
+                } catch (e) {
+                    alert('<?php echo $helper->__("Error parsing response from server."); ?>');
+                }
+            }
+        });
+    }
+    //]]>
+</script>

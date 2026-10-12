@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Modestox CMS - E-commerce Platform
+ *
+ * @copyright Copyright (c) 2026 Sergey Kuzmitsky
+ * @license   AGPL-3.0-or-later
+ * @link      https://github.com/Modestox/modestox
+ */
+-->
+<layout version="0.1.0">
+    <!-- Grid List Action -->
+    <adminhtml_rule_index>
+        <reference name="content">
+            <block type="modestox_deltalog/adminhtml_rule" name="modestox_deltalog_rule" />
+        </reference>
+    </adminhtml_rule_index>
+
+    <!-- AJAX Grid Response -->
+    <adminhtml_rule_grid>
+        <block type="modestox_deltalog/adminhtml_rule_grid" name="modestox_deltalog_rule.grid" />
+    </adminhtml_rule_grid>
+
+    <!-- Create / Edit Action -->
+    <adminhtml_rule_edit>
+        <reference name="left">
+            <block type="modestox_deltalog/adminhtml_rule_edit_tabs" name="deltalog_rule_tabs" />
+        </reference>
+        <reference name="content">
+            <block type="modestox_deltalog/adminhtml_rule_edit" name="deltalog_rule_edit" />
+        </reference>
+    </adminhtml_rule_edit>
+</layout>
