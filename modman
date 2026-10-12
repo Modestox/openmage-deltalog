@@ -1,2 +1,4 @@
-app/code/local/Modestox/DeltaLog        app/code/local/Modestox/DeltaLog
-app/etc/modules/Modestox_DeltaLog.xml   app/etc/modules/Modestox_DeltaLog.xml
+app/code/local/Modestox/DeltaLog               app/code/local/Modestox/DeltaLog
+app/design/adminhtml/base/default/layout/modestox/modestox_deltalog.xml  app/design/adminhtml/base/default/layout/modestox/modestox_deltalog.xml
+app/design/adminhtml/base/default/template/modestox/deltalog            app/design/adminhtml/base/default/template/modestox/deltalog
+app/etc/modules/Modestox_DeltaLog.xml          app/etc/modules/Modestox_DeltaLog.xml
