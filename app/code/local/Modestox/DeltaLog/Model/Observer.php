@@ -1,12 +1,12 @@
 <?php
-
 /**
- * Modestox CMS - E-commerce Platform
+ * Modestox DeltaLog for OpenMage
  *
  * @copyright Copyright (c) 2026 Sergey Kuzmitsky
- * @license   AGPL-3.0-or-later
- * @link      https://github.com/Modestox/modestox
+ * @license   MIT
+ * @link      https://github.com/Modestox/openmage-deltalog
  */
+
 class Modestox_DeltaLog_Model_Observer
 {
     /**
@@ -17,20 +17,26 @@ class Modestox_DeltaLog_Model_Observer
      */
     public function executeOnModelSaveAfter(Varien_Event_Observer $observer): void
     {
-        Mage::log('DeltaLog Triggered for Table: ээ', null, 'deltalog.log', true);
-        // 1. Check if save happens within Admin Panel session
-        if (!Mage::getSingleton('admin/session')->isLoggedIn()) {
+        /** @var Modestox_DeltaLog_Helper_Data $helper */
+        $helper = Mage::helper('modestox_deltalog');
+
+        // This observer runs on EVERY model save in the whole shop, so the cheapest checks come first.
+        if (!$helper->isEnabled()) {
             return;
         }
 
-        // 2. Check system configuration toggle
-        if (!Mage::getStoreConfigFlag('modestox_deltalog/general/enabled')) {
+        // Check the area BEFORE touching admin/session: instantiating that session outside the admin
+        // area (frontend, cron, CLI scripts) starts a PHP session as a side effect.
+        if (!Mage::app()->getStore()->isAdmin()) {
+            return;
+        }
+        if (!Mage::getSingleton('admin/session')->isLoggedIn()) {
             return;
         }
 
         /** @var Mage_Core_Model_Abstract $model */
         $model = $observer->getEvent()->getObject();
-        if (!$model || !$model->getId()) {
+        if (!$model instanceof Mage_Core_Model_Abstract || !$model->getId()) {
             return;
         }
 
@@ -39,9 +45,8 @@ class Modestox_DeltaLog_Model_Observer
             $processor = Mage::getModel('modestox_deltalog/processor');
             $processor->processModelChanges($model);
         } catch (Throwable $e) {
-            // Log error safely without breaking standard save flow
+            // never break the standard save flow
             Mage::logException($e);
-            Mage::log('DeltaLog Error: ' . $e->getMessage(), null, 'deltalog.log', true);
         }
     }
 }

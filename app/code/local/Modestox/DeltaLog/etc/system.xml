@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Modestox CMS - E-commerce Platform
+ * Modestox DeltaLog for OpenMage
  *
  * @copyright Copyright (c) 2026 Sergey Kuzmitsky
- * @license   AGPL-3.0-or-later
- * @link      https://github.com/Modestox/modestox
+ * @license   MIT
+ * @link      https://github.com/Modestox/openmage-deltalog
  */
 -->
 <config>
@@ -22,16 +22,16 @@
             <frontend_type>text</frontend_type>
             <sort_order>100</sort_order>
             <show_in_default>1</show_in_default>
-            <show_in_website>1</show_in_website>
-            <show_in_store>1</show_in_store>
+            <show_in_website>0</show_in_website>
+            <show_in_store>0</show_in_store>
             <groups>
                 <general translate="label">
                     <label>General Settings</label>
                     <frontend_type>text</frontend_type>
                     <sort_order>10</sort_order>
                     <show_in_default>1</show_in_default>
-                    <show_in_website>1</show_in_website>
-                    <show_in_store>1</show_in_store>
+                    <show_in_website>0</show_in_website>
+                    <show_in_store>0</show_in_store>
                     <fields>
                         <enabled translate="label">
                             <label>Enable Delta Logging</label>
@@ -39,9 +39,19 @@
                             <source_model>adminhtml/system_config_source_yesno</source_model>
                             <sort_order>10</sort_order>
                             <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
                         </enabled>
+                        <debug translate="label comment">
+                            <label>Debug logging</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <comment>Writes matches and compiled rules to var/log/deltalog.log. Switch off after testing.</comment>
+                        </debug>
                     </fields>
                 </general>
             </groups>

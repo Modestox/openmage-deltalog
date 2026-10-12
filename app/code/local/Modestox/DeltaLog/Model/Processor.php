@@ -1,12 +1,12 @@
 <?php
-
 /**
- * Modestox CMS - E-commerce Platform
+ * Modestox DeltaLog for OpenMage
  *
  * @copyright Copyright (c) 2026 Sergey Kuzmitsky
- * @license   AGPL-3.0-or-later
- * @link      https://github.com/Modestox/modestox
+ * @license   MIT
+ * @link      https://github.com/Modestox/openmage-deltalog
  */
+
 class Modestox_DeltaLog_Model_Processor
 {
     /**
@@ -15,6 +15,15 @@ class Modestox_DeltaLog_Model_Processor
      * @var Modestox_DeltaLog_Helper_Data|null
      */
     protected ?Modestox_DeltaLog_Helper_Data $_helper = null;
+
+    /**
+     * Last value written to the log per "table|id|field" within this request.
+     * Model::getOrigData() is only refreshed by load(), so when the same object is saved twice
+     * in one request the second save would otherwise log the first change again.
+     *
+     * @var array<string, string>
+     */
+    protected static array $_baseline = [];
 
     /**
      * Get module helper
@@ -39,40 +48,34 @@ class Modestox_DeltaLog_Model_Processor
     public function processModelChanges(Mage_Core_Model_Abstract $model): void
     {
         $tableName = $this->resolveTableName($model);
-        Mage::log('DeltaLog Triggered for Table: ' . $tableName . ' | Model ID: ' . $model->getId(), null, 'deltalog.log', true);
 
+        // getCompiledRules() reads the cache; recompileRulesCache() rebuilds from the database
+        // and must only be called when rules are edited.
         /** @var Modestox_DeltaLog_Model_Compiler $compiler */
         $compiler = Mage::getModel('modestox_deltalog/compiler');
-        //$compiledRules = $compiler->getCompiledRules();
-        $compiledRules = $compiler->recompileRulesCache();
-
-        if (empty($compiledRules)) {
-            Mage::log('DeltaLog Error: Compiled rules array is empty!', null, 'deltalog.log', true);
-            return;
-        }
-
-        $entityConfig = $compiledRules[$tableName] ?? null;
-
-        if (!$entityConfig) {
-            Mage::log('DeltaLog Error: No compiled config found for table: ' . $tableName, null, 'deltalog.log', true);
-            return;
-        }
+        $entityConfig = $compiler->getCompiledRules()[$tableName] ?? null;
 
         if (empty($entityConfig['fields'])) {
-            Mage::log('DeltaLog Error: Rules found for table ' . $tableName . ', but fields array is empty!', null, 'deltalog.log', true);
-            return;
+            return; // table is not tracked (the normal case for almost every save)
         }
 
-        Mage::log('DeltaLog Matching Success! Tracked fields count: ' . count($entityConfig['fields']), null, 'deltalog.log', true);
+        $this->_getHelper()->debug(
+            sprintf(
+                'match: table "%s", id %s, %d tracked field(s)',
+                $tableName,
+                $model->getId(),
+                count($entityConfig['fields']),
+            ),
+        );
 
         $entityId = (int)$model->getId();
         $entityTitle = isset($entityConfig['title_field']) && $entityConfig['title_field']
-            ? (string)$model->getData($entityConfig['title_field'])
+            ? $this->valueToString($model->getData($entityConfig['title_field']))
             : null;
 
         $formattedEntityInfo = $this->buildFormattedEntityInfo($entityId, $entityTitle);
         $userName = $this->resolveCurrentUserName();
-        $ipAddress = Mage::helper('core/http')->getRemoteAddr();
+        $ipAddress = Mage::helper('core/http')->getRemoteAddr() ?: '0.0.0.0';
         $helper = $this->_getHelper();
 
         $rowsToInsert = [];
@@ -90,23 +93,25 @@ class Modestox_DeltaLog_Model_Processor
                 ? $origData[$fieldCode]
                 : null;
 
-            $oldString = is_array($oldValue) ? json_encode($oldValue) : trim((string)$oldValue);
-            $newString = is_array($newValue) ? json_encode($newValue) : trim((string)$newValue);
+            $baselineKey = $tableName . '|' . $entityId . '|' . $fieldCode;
+            $oldString = self::$_baseline[$baselineKey] ?? $this->valueToString($oldValue);
+            $newString = $this->valueToString($newValue);
 
             if ($this->hasFieldValueChanged($oldString, $newString, $fieldData)) {
+                self::$_baseline[$baselineKey] = $newString;
                 $rowsToInsert[] = [
-                    'user_name'      => $userName,
-                    'ip_address'     => $ipAddress,
-                    'table_name'     => $tableName,
-                    'entity_id'      => $entityId,
-                    'entity_title'   => $entityTitle,
-                    'entity_info'    => $formattedEntityInfo,
+                    'user_name'    => $userName,
+                    'ip_address'   => $ipAddress,
+                    'table_name'   => $tableName,
+                    'entity_id'    => $entityId,
+                    'entity_title' => $entityTitle,
+                    'entity_info'  => $formattedEntityInfo,
                     //'edit_url_route' => $entityConfig['edit_url_route'] ?? null,
-                    'field_code'     => $fieldCode,
-                    'field_label'    => $translatedLabel,
-                    'old_value'      => $this->transformValueToDisplayLabel($fieldData, $oldString),
-                    'new_value'      => $this->transformValueToDisplayLabel($fieldData, $newString),
-                    'created_at'     => Varien_Date::now(),
+                    'field_code'   => $fieldCode,
+                    'field_label'  => $translatedLabel,
+                    'old_value'    => $this->transformValueToDisplayLabel($fieldData, $oldString),
+                    'new_value'    => $this->transformValueToDisplayLabel($fieldData, $newString),
+                    'created_at'   => Varien_Date::now(),
                 ];
             }
         }
@@ -126,13 +131,49 @@ class Modestox_DeltaLog_Model_Processor
     {
         $resource = $model->getResource();
         if (method_exists($resource, 'getMainTable')) {
-            return $resource->getMainTable();
-        }
-        if (method_exists($resource, 'getEntityTable')) {
-            return $resource->getEntityTable();
+            $table = $resource->getMainTable();
+        } elseif (method_exists($resource, 'getEntityTable')) {
+            $table = $resource->getEntityTable();
+        } else {
+            $table = (string)$model->getResourceName();
         }
 
-        return $model->getResourceName();
+        // resources return the PREFIXED name, rules are stored without the prefix
+        return $this->_getHelper()->stripTablePrefix((string)$table);
+    }
+
+    /**
+     * Scalars are trimmed, arrays/objects are JSON encoded (a plain (string) cast on an object would fatal).
+     *
+     * @param mixed $value
+     */
+    protected function valueToString($value): string
+    {
+        if ($value === null) {
+            return '';
+        }
+        if (is_bool($value)) {
+            return $value ? '1' : '0';
+        }
+        if (is_scalar($value)) {
+            return trim((string)$value);
+        }
+
+        return (string)json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PARTIAL_OUTPUT_ON_ERROR);
+    }
+
+    /**
+     * Only strips meaningless trailing zeros of decimals, so "01234" (a zip code) stays different from "1234".
+     */
+    protected function normalizeDecimalString(string $val): string
+    {
+        if (preg_match('/^-?\d+\.\d+$/', $val)) {
+            $val = rtrim(rtrim($val, '0'), '.');
+
+            return ($val === '-0' || $val === '') ? '0' : $val;
+        }
+
+        return $val;
     }
 
     /**
@@ -162,6 +203,11 @@ class Modestox_DeltaLog_Model_Processor
     protected function hasFieldValueChanged(string $oldVal, string $newVal, array $fieldData): bool
     {
         if ($oldVal === $newVal) {
+            return false;
+        }
+
+        // "10.5000" and "10.5" (or "1.00" and "1") are the same number
+        if ($this->normalizeDecimalString($oldVal) === $this->normalizeDecimalString($newVal)) {
             return false;
         }
 

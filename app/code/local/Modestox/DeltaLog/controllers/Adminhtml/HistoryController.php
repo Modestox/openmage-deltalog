@@ -1,10 +1,10 @@
 <?php
 /**
- * Modestox CMS - E-commerce Platform
+ * Modestox DeltaLog for OpenMage
  *
  * @copyright Copyright (c) 2026 Sergey Kuzmitsky
- * @license   AGPL-3.0-or-later
- * @link      https://github.com/Modestox/modestox
+ * @license   MIT
+ * @link      https://github.com/Modestox/openmage-deltalog
  */
 
 class Modestox_DeltaLog_Adminhtml_HistoryController extends Mage_Adminhtml_Controller_Action
@@ -60,6 +60,6 @@ class Modestox_DeltaLog_Adminhtml_HistoryController extends Mage_Adminhtml_Contr
      */
     protected function _isAllowed(): bool
     {
-        return Mage::getSingleton('admin/session')->isAllowed('system/modestox_deltalog');
+        return Mage::getSingleton('admin/session')->isAllowed('system/modestox_deltalog/history');
     }
 }

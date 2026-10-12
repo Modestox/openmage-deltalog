@@ -1,12 +1,12 @@
 <?php
-
 /**
- * Modestox CMS - E-commerce Platform
+ * Modestox DeltaLog for OpenMage
  *
  * @copyright Copyright (c) 2026 Sergey Kuzmitsky
- * @license   AGPL-3.0-or-later
- * @link      https://github.com/Modestox/modestox
+ * @license   MIT
+ * @link      https://github.com/Modestox/openmage-deltalog
  */
+
 class Modestox_DeltaLog_Block_Adminhtml_History_Grid extends Mage_Adminhtml_Block_Widget_Grid
 {
     /**
@@ -115,10 +115,10 @@ class Modestox_DeltaLog_Block_Adminhtml_History_Grid extends Mage_Adminhtml_Bloc
         // ]);
 
         $this->addColumn('field_code', [
-    'header' => Mage::helper('modestox_deltalog')->__('Field Name'),
-    'index'  => 'field_label',
-    'type'   => 'text',
-]);
+            'header' => Mage::helper('modestox_deltalog')->__('Field Name'),
+            'index'  => 'field_label',
+            'type'   => 'text',
+        ]);
 
         $this->addColumn('old_value', [
             'header' => $helper->__('From'),

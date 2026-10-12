@@ -1,15 +1,18 @@
 <?php
-
 /**
- * Modestox CMS - E-commerce Platform
+ * Modestox DeltaLog for OpenMage
  *
  * @copyright Copyright (c) 2026 Sergey Kuzmitsky
- * @license   AGPL-3.0-or-later
- * @link      https://github.com/Modestox/modestox
+ * @license   MIT
+ * @link      https://github.com/Modestox/openmage-deltalog
  */
+
 class Modestox_DeltaLog_Model_Compiler
 {
     public const CACHE_KEY = 'modestox_deltalog_compiled_rules';
+
+    /** @var array|null per-request memo: the observer asks for the rules on every model save */
+    protected static ?array $_memo = null;
 
     /**
      * Get compiled active tracked entities rules from Cache or Build on the fly
@@ -18,11 +21,17 @@ class Modestox_DeltaLog_Model_Compiler
      */
     public function getCompiledRules(): array
     {
+        if (self::$_memo !== null) {
+            return self::$_memo;
+        }
+
         $cache = Mage::app()->loadCache(self::CACHE_KEY);
         if ($cache !== false) {
             $unserialized = @unserialize($cache, ['allowed_classes' => false]);
-            if (is_array($unserialized) && !empty($unserialized)) {
-                return $unserialized;
+            // an EMPTY array is a valid cached result ("no rules"): without this the rules
+            // would be rebuilt from the database on every single model save
+            if (is_array($unserialized)) {
+                return self::$_memo = $unserialized;
             }
         }
 
@@ -37,6 +46,8 @@ class Modestox_DeltaLog_Model_Compiler
     public function recompileRulesCache(): array
     {
         $compiledRules = [];
+        /** @var Modestox_DeltaLog_Helper_Data $helper */
+        $helper = Mage::helper('modestox_deltalog');
 
         // 1. Load active rules from Database
         /** @var Modestox_DeltaLog_Model_Resource_Rule_Collection $ruleCollection */
@@ -45,7 +56,7 @@ class Modestox_DeltaLog_Model_Compiler
 
         /** @var Modestox_DeltaLog_Model_Rule $rule */
         foreach ($ruleCollection as $rule) {
-            $tableName = trim((string)$rule->getTableName());
+            $tableName = $helper->stripTablePrefix(trim((string)$rule->getTableName()));
             if (!$tableName) {
                 continue;
             }
@@ -85,14 +96,13 @@ class Modestox_DeltaLog_Model_Compiler
                 'fields'         => $fieldsData,
             ];
 
-            // ВРЕМЕННЫЙ ЛОГ: смотрим, какие ключи реально запекаются в кэш
-            Mage::log('Compiler Baked Rule Table: "' . $tableName . '" with fields count: ' . count($fieldsData), null, 'deltalog.log', true);
+            $helper->debug('compiled rule "' . $tableName . '", fields: ' . count($fieldsData));
         }
         // 2. Merge static rules from XML config (Fallback)
         $xmlTracked = Mage::getConfig()->getNode('global/tracked_entities');
         if ($xmlTracked) {
             foreach ($xmlTracked->children() as $entityNode) {
-                $tableName = (string)$entityNode->table_name;
+                $tableName = $helper->stripTablePrefix((string)$entityNode->table_name);
                 if (!isset($compiledRules[$tableName]) && $entityNode->fields) {
                     $fieldsData = [];
                     foreach ($entityNode->fields->children() as $code => $fieldNode) {
@@ -123,9 +133,9 @@ class Modestox_DeltaLog_Model_Compiler
             serialize($compiledRules),
             self::CACHE_KEY,
             [Mage_Core_Model_Config::CACHE_TAG],
-            null
+            null,
         );
 
-        return $compiledRules;
+        return self::$_memo = $compiledRules;
     }
 }
