@@ -49,14 +49,12 @@ class Modestox_DeltaLog_Model_Processor
     {
         $tableName = $this->resolveTableName($model);
 
-        // getCompiledRules() reads the cache; recompileRulesCache() rebuilds from the database
-        // and must only be called when rules are edited.
         /** @var Modestox_DeltaLog_Model_Compiler $compiler */
         $compiler = Mage::getModel('modestox_deltalog/compiler');
         $entityConfig = $compiler->getCompiledRules()[$tableName] ?? null;
 
         if (empty($entityConfig['fields'])) {
-            return; // table is not tracked (the normal case for almost every save)
+            return;
         }
 
         $this->_getHelper()->debug(
@@ -64,8 +62,8 @@ class Modestox_DeltaLog_Model_Processor
                 'match: table "%s", id %s, %d tracked field(s)',
                 $tableName,
                 $model->getId(),
-                count($entityConfig['fields']),
-            ),
+                count($entityConfig['fields'])
+            )
         );
 
         $entityId = (int)$model->getId();
@@ -97,6 +95,8 @@ class Modestox_DeltaLog_Model_Processor
             $oldString = self::$_baseline[$baselineKey] ?? $this->valueToString($oldValue);
             $newString = $this->valueToString($newValue);
 
+            $this->_getHelper()->debug(sprintf('CHECK [%s]: oldString="%s" (type: %s), newString="%s" (type: %s)', $fieldCode, $oldString, gettype($oldValue), $newString, gettype($newValue)));
+
             if ($this->hasFieldValueChanged($oldString, $newString, $fieldData)) {
                 self::$_baseline[$baselineKey] = $newString;
                 $rowsToInsert[] = [
@@ -109,8 +109,8 @@ class Modestox_DeltaLog_Model_Processor
                     //'edit_url_route' => $entityConfig['edit_url_route'] ?? null,
                     'field_code'   => $fieldCode,
                     'field_label'  => $translatedLabel,
-                    'old_value'    => $this->transformValueToDisplayLabel($fieldData, $oldString),
-                    'new_value'    => $this->transformValueToDisplayLabel($fieldData, $newString),
+                    'old_value'    => $this->transformValueToDisplayLabel($fieldData, $oldString, $fieldCode, $tableName),
+                    'new_value'    => $this->transformValueToDisplayLabel($fieldData, $newString, $fieldCode, $tableName),
                     'created_at'   => Varien_Date::now(),
                 ];
             }
@@ -138,14 +138,14 @@ class Modestox_DeltaLog_Model_Processor
             $table = (string)$model->getResourceName();
         }
 
-        // resources return the PREFIXED name, rules are stored without the prefix
         return $this->_getHelper()->stripTablePrefix((string)$table);
     }
 
     /**
-     * Scalars are trimmed, arrays/objects are JSON encoded (a plain (string) cast on an object would fatal).
+     * Scalars are trimmed, arrays/objects are JSON encoded.
      *
      * @param mixed $value
+     * @return string
      */
     protected function valueToString($value): string
     {
@@ -163,7 +163,10 @@ class Modestox_DeltaLog_Model_Processor
     }
 
     /**
-     * Only strips meaningless trailing zeros of decimals, so "01234" (a zip code) stays different from "1234".
+     * Only strips meaningless trailing zeros of decimals.
+     *
+     * @param string $val
+     * @return string
      */
     protected function normalizeDecimalString(string $val): string
     {
@@ -206,7 +209,6 @@ class Modestox_DeltaLog_Model_Processor
             return false;
         }
 
-        // "10.5000" and "10.5" (or "1.00" and "1") are the same number
         if ($this->normalizeDecimalString($oldVal) === $this->normalizeDecimalString($newVal)) {
             return false;
         }
@@ -233,12 +235,14 @@ class Modestox_DeltaLog_Model_Processor
      *
      * @param array $fieldData
      * @param string|null $value
+     * @param string $fieldCode
+     * @param string $tableName
      * @return string|null
      */
-    protected function transformValueToDisplayLabel(array $fieldData, ?string $value): ?string
+    protected function transformValueToDisplayLabel(array $fieldData, ?string $value, string $fieldCode = '', string $tableName = ''): ?string
     {
         if ($value === '' || $value === null) {
-            return $value;
+            return '—';
         }
 
         $helper = $this->_getHelper();
@@ -251,17 +255,19 @@ class Modestox_DeltaLog_Model_Processor
             }
         }
 
-        $options = $this->loadFieldOptionDictionary($fieldData);
+        $options = $this->loadFieldOptionDictionary($fieldData, $fieldCode, $tableName);
 
         if (!empty($options)) {
-            if (is_array($value) || strpos($value, ',') !== false) {
-                $valArray = is_array($value) ? $value : explode(',', $value);
+            $strValue = (string)$value;
+
+            if (is_array($value) || strpos($strValue, ',') !== false) {
+                $valArray = is_array($value) ? $value : explode(',', $strValue);
                 $formattedValues = [];
 
                 foreach ($valArray as $valItem) {
-                    $valItem = trim($valItem);
-                    if (isset($options[$valItem])) {
-                        $formattedValues[] = sprintf('%s [%s]', $helper->__($options[$valItem]), $valItem);
+                    $valItem = trim((string)$valItem);
+                    if (array_key_exists($valItem, $options)) {
+                        $formattedValues[] = sprintf('%s [%s]', $helper->__((string)$options[$valItem]), $valItem);
                     } else {
                         $formattedValues[] = $valItem;
                     }
@@ -270,8 +276,8 @@ class Modestox_DeltaLog_Model_Processor
                 return implode(', ', $formattedValues);
             }
 
-            if (isset($options[$value])) {
-                return sprintf('%s [%s]', $helper->__($options[$value]), $value);
+            if (array_key_exists($strValue, $options)) {
+                return sprintf('%s [%s]', $helper->__((string)$options[$strValue]), $strValue);
             }
         }
 
@@ -279,15 +285,18 @@ class Modestox_DeltaLog_Model_Processor
     }
 
     /**
-     * Load options dictionary from custom options array, source model or helper method
+     * Load options dictionary safely without instantiating eav/entity_attribute_source_table directly
      *
      * @param array $fieldData
+     * @param string $fieldCode
+     * @param string $tableName
      * @return array
      */
-    protected function loadFieldOptionDictionary(array $fieldData): array
+    protected function loadFieldOptionDictionary(array $fieldData, string $fieldCode = '', string $tableName = ''): array
     {
         $options = [];
         $helper = $this->_getHelper();
+        $code = !empty($fieldData['field_code']) ? (string)$fieldData['field_code'] : $fieldCode;
 
         if (!empty($fieldData['custom_options'])) {
             foreach ($fieldData['custom_options'] as $optKey => $optVal) {
@@ -296,26 +305,66 @@ class Modestox_DeltaLog_Model_Processor
             }
         } elseif (!empty($fieldData['source_model'])) {
             $sourceClass = (string)$fieldData['source_model'];
-            $sourceModel = Mage::getModel($sourceClass) ?: Mage::getResourceModel($sourceClass);
 
-            if ($sourceModel) {
-                if (method_exists($sourceModel, 'getOptionsToArray')) {
-                    $options = $sourceModel->getOptionsToArray();
-                } elseif (method_exists($sourceModel, 'toOptionArray')) {
-                    foreach ($sourceModel->toOptionArray() as $opt) {
-                        if (isset($opt['value'], $opt['label'])) {
-                            $options[$opt['value']] = $opt['label'];
+            try {
+                // 1. Для системных EAV таблиц (eav/entity_attribute_source_table)
+                if ($sourceClass === 'eav/entity_attribute_source_table') {
+                    if (!empty($code)) {
+                        $entityTypeCode = !empty($tableName) ? str_replace('_entity', '', $tableName) : 'customer';
+
+                        /** @var Mage_Eav_Model_Entity_Attribute $attribute */
+                        $attribute = Mage::getResourceModel('eav/entity_attribute_collection')
+                            ->setCodeFilter($code)
+                            ->setEntityTypeFilter(Mage::getModel('eav/entity_type')->loadByCode($entityTypeCode)->getId())
+                            ->getFirstItem();
+
+                        if ($attribute && $attribute->getId()) {
+                            // ИСПРАВЛЕННЫЙ АЛИАС: eav/entity_attribute_option_collection
+                            $optionCollection = Mage::getResourceModel('eav/entity_attribute_option_collection');
+
+                            if ($optionCollection) {
+                                $optionCollection->setAttributeFilter($attribute->getId())
+                                    ->setStoreFilter(Mage::app()->getStore()->getId());
+
+                                foreach ($optionCollection as $option) {
+                                    $options[(string)$option->getOptionId()] = (string)$option->getValue();
+                                }
+                            }
                         }
                     }
-                } elseif (method_exists($sourceModel, 'getAllOptions')) {
-                    foreach ($sourceModel->getAllOptions() as $opt) {
-                        if (isset($opt['value'], $opt['label']) && $opt['value'] !== '') {
-                            $options[$opt['value']] = $opt['label'];
-                        }
-                    }
-                } elseif (method_exists($sourceModel, 'toOptionHash')) {
-                    $options = $sourceModel->toOptionHash();
+                    return $options;
                 }
+
+                // 2. Для автономных моделей (например, customer/customer_attribute_source_group)
+                $sourceModel = Mage::getModel($sourceClass) ?: Mage::getResourceModel($sourceClass);
+
+                if ($sourceModel) {
+                    if (method_exists($sourceModel, 'getAllOptions')) {
+                        $rawOptions = $sourceModel->getAllOptions(false);
+                        if (is_array($rawOptions)) {
+                            foreach ($rawOptions as $opt) {
+                                if (isset($opt['value'], $opt['label']) && $opt['value'] !== '' && $opt['value'] !== null) {
+                                    $options[(string)$opt['value']] = (string)$opt['label'];
+                                }
+                            }
+                        }
+                    } elseif (method_exists($sourceModel, 'getOptionsToArray')) {
+                        $options = $sourceModel->getOptionsToArray();
+                    } elseif (method_exists($sourceModel, 'toOptionArray')) {
+                        $rawOptions = $sourceModel->toOptionArray();
+                        if (is_array($rawOptions)) {
+                            foreach ($rawOptions as $opt) {
+                                if (isset($opt['value'], $opt['label'])) {
+                                    $options[(string)$opt['value']] = (string)$opt['label'];
+                                }
+                            }
+                        }
+                    } elseif (method_exists($sourceModel, 'toOptionHash')) {
+                        $options = $sourceModel->toOptionHash();
+                    }
+                }
+            } catch (Throwable $e) {
+                $helper->debug('Error loading option dictionary for field ' . ($code ?: 'unknown') . ': ' . $e->getMessage());
             }
         } elseif (!empty($fieldData['helper_method'])) {
             $parts = explode('::', (string)$fieldData['helper_method']);
@@ -371,7 +420,7 @@ class Modestox_DeltaLog_Model_Processor
         $writeAdapter = $resource->getConnection('core_write');
         $writeAdapter->insertMultiple(
             $resource->getTableName('modestox_deltalog/entry'),
-            $rowsToInsert,
+            $rowsToInsert
         );
     }
 }

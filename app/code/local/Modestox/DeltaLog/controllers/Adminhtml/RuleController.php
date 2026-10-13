@@ -181,13 +181,14 @@ class Modestox_DeltaLog_Adminhtml_RuleController extends Mage_Adminhtml_Controll
                     }
 
                     $fieldModel->addData([
-                        'rule_id'       => $ruleId,
-                        'field_code'    => $fieldCode,
-                        'field_label'   => $fieldLabel,
-                        'value_type'    => trim((string)($fieldData['value_type'] ?? 'text')),
-                        'source_model'  => trim((string)($fieldData['source_model'] ?? '')) ?: null,
-                        'helper_method' => trim((string)($fieldData['helper_method'] ?? '')) ?: null,
-                        'is_active'     => isset($fieldData['is_active']) ? (int)$fieldData['is_active'] : 1,
+                        'rule_id'            => $ruleId,
+                        'field_code'         => $fieldCode,
+                        'field_label'        => $fieldLabel,
+                        'value_type'         => trim((string)($fieldData['value_type'] ?? 'text')),
+                        'source_model'       => trim((string)($fieldData['source_model'] ?? '')) ?: null,
+                        'helper_method'      => trim((string)($fieldData['helper_method'] ?? '')) ?: null,
+                        'custom_options_raw' => trim((string)($fieldData['custom_options_raw'] ?? '')),
+                        'is_active'          => isset($fieldData['is_active']) ? (int)$fieldData['is_active'] : 1,
                     ]);
 
                     $fieldModel->save();

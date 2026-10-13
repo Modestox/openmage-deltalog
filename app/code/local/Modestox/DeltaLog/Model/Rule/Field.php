@@ -20,7 +20,7 @@ class Modestox_DeltaLog_Model_Rule_Field extends Mage_Core_Model_Abstract
     }
 
     /**
-     * Get custom options map from JSON
+     * Get custom options map from JSON or array
      *
      * @return array
      */
@@ -31,23 +31,62 @@ class Modestox_DeltaLog_Model_Rule_Field extends Mage_Core_Model_Abstract
             return [];
         }
 
-        $decoded = json_decode($raw, true);
+        if (is_array($raw)) {
+            return $raw;
+        }
+
+        $decoded = json_decode((string)$raw, true);
 
         return is_array($decoded) ? $decoded : [];
     }
 
     /**
-     * Trigger rule cache recompile on field save
+     * Alias method for template getter compatibility
+     *
+     * @return array
+     */
+    public function getCustomOptions(): array
+    {
+        return $this->getParsedCustomOptions();
+    }
+
+    /**
+     * Prepare custom options array from raw input string (custom_options_raw) before saving
      *
      * @return Modestox_DeltaLog_Model_Rule_Field
      */
-//    protected function _afterSave(): self
-//    {
-//        parent::_afterSave();
-//        Mage::getModel('modestox_deltalog/compiler')->recompileRulesCache();
-//
-//        return $this;
-//    }
+    protected function _beforeSave(): self
+    {
+        parent::_beforeSave();
+
+        if ($this->hasData('custom_options_raw')) {
+            $rawString = trim((string)$this->getData('custom_options_raw'));
+            $customOptions = [];
+
+            if ($rawString !== '') {
+                $items = explode(',', $rawString);
+
+                foreach ($items as $item) {
+                    $item = trim($item);
+                    if ($item === '' || !str_contains($item, ':')) {
+                        continue;
+                    }
+
+                    [$key, $value] = explode(':', $item, 2);
+                    $cleanKey = trim($key);
+                    $cleanVal = trim($value);
+
+                    if ($cleanKey !== '' && $cleanVal !== '') {
+                        $customOptions['v_' . $cleanKey] = $cleanVal;
+                    }
+                }
+            }
+
+            $this->setData('custom_options', !empty($customOptions) ? json_encode($customOptions, JSON_UNESCAPED_UNICODE) : null);
+        }
+
+        return $this;
+    }
 
     /**
      * Trigger rule cache recompile on field delete

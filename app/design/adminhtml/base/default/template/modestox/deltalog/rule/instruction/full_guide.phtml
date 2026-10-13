@@ -1,0 +1,99 @@
+<?php
+/**
+ * Modestox DeltaLog for OpenMage
+ *
+ * @copyright Copyright (c) 2026 Sergey Kuzmitsky
+ * @license   MIT
+ * @link      https://github.com/Modestox/openmage-deltalog
+ */
+
+/** @var Mage_Adminhtml_Block_Template $this */
+$helper = Mage::helper('modestox_deltalog');
+?>
+
+<div class="entry-edit">
+    <div class="entry-edit-head">
+        <h4 class="icon-head head-edit-form fieldset-legend">
+            <?php echo $helper->__('📖 Подробное руководство по настройке правил отслеживания (Delta Log)'); ?>
+        </h4>
+    </div>
+    <div class="fieldset fieldset-wide" style="background-color: #f8f9fa; border: 1px solid #ccd1d9; border-top: 0; padding: 15px 20px;">
+        <div style="font-size: 13px; line-height: 1.6; color: #2f2f2f;">
+
+            <div class="entry-edit-head" style="margin-top: 10px;">
+                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $helper->__('Архитектура и принцип работы'); ?></h4>
+            </div>
+            <div class="fieldset" style="background-color: #fff; border: 1px solid #ccd1d9; border-top: 0; padding: 15px;">
+                <p style="margin-top: 0;">
+                    <?php echo $helper->__('Модуль <strong>Delta Log</strong> предназначен для точечного аудита изменений данных в OpenMage. Он фиксирует: <strong>кто</strong> (учетная запись админа), <strong>когда</strong> (дата/время), <strong>откуда</strong> (IP-адрес) и <strong>что именно</strong> поменял в объекте (старое и новое значение).'); ?>
+                </p>
+                <p style="margin-bottom: 0;">
+                    <?php echo $helper->__('<strong>Производительность:</strong> Чтобы не делать тяжелые запросы к базе данных при каждом клике или сохранении в интернет-магазине, правила логирования при сохранении компилируются в оптимизированный кэш OpenMage. Наблюдатель (Observer) мгновенно считывает эти правила из оперативной памяти.'); ?>
+                </p>
+            </div>
+
+            <!-- Подгружаемый блок руководства по General Configuration -->
+            <?php echo $this->getChildHtml('instruction_general'); ?>
+
+            <!-- Подгружаемый блок руководства по Tracked Fields -->
+            <?php echo $this->getChildHtml('instruction_fields'); ?>
+
+            <div class="entry-edit-head" style="margin-top: 25px;">
+                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $helper->__('Сравнение типов моделей (Flat Table vs EAV Model)'); ?></h4>
+            </div>
+            <div class="fieldset" style="background-color: #fff; border: 1px solid #ccd1d9; border-top: 0; padding: 15px;">
+                <table style="width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #ccd1d9;" border="1" cellpadding="0" cellspacing="0">
+                    <thead>
+                    <tr style="background-color: #f6f6f6; text-align: left;">
+                        <th style="width: 20%; padding: 10px 12px; font-weight: bold; border: 1px solid #ccd1d9;"><?php echo $helper->__('Тип модели'); ?></th>
+                        <th style="width: 40%; padding: 10px 12px; font-weight: bold; border: 1px solid #ccd1d9;"><?php echo $helper->__('Как устроена'); ?></th>
+                        <th style="width: 40%; padding: 10px 12px; font-weight: bold; border: 1px solid #ccd1d9;"><?php echo $helper->__('Примеры в OpenMage'); ?></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td style="padding: 10px 12px; vertical-align: top; border: 1px solid #ccd1d9;">
+                            <strong>Flat Table</strong><br/><em>(Плоская таблица)</em>
+                        </td>
+                        <td style="padding: 10px 12px; vertical-align: top; border: 1px solid #ccd1d9;">
+                            <?php echo $helper->__('Все данные объекта хранятся в <strong>одной физической таблице MySQL</strong>. Каждая характеристика &mdash; отдельный столбец. Быстрый и простой вариант.'); ?>
+                        </td>
+                        <td style="padding: 10px 12px; vertical-align: top; border: 1px solid #ccd1d9;">
+                            &bull; <code>sales_flat_order</code> (Заказы)<br/>
+                            &bull; <code>salesrule</code> (Правила корзины)<br/>
+                            &bull; <code>admin_user</code> (Администраторы)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 12px; vertical-align: top; border: 1px solid #ccd1d9;">
+                            <strong>EAV Model</strong><br/><em>(Entity-Attribute-Value)</em>
+                        </td>
+                        <td style="padding: 10px 12px; vertical-align: top; border: 1px solid #ccd1d9;">
+                            <?php echo $helper->__('Данные распределены по серии таблиц: главная (<code>*_entity</code>) хранит ID, а атрибуты раскиданы по типам данных (<code>*_varchar</code>, <code>*_int</code>, <code>*_decimal</code>). Позволяет добавлять атрибуты «на лету».'); ?>
+                        </td>
+                        <td style="padding: 10px 12px; vertical-align: top; border: 1px solid #ccd1d9;">
+                            &bull; <code>customer_entity</code> (Покупатели)<br/>
+                            &bull; <code>catalog_product_entity</code> (Товары)<br/>
+                            &bull; <code>catalog_category_entity</code> (Категории)
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="entry-edit-head" style="margin-top: 25px;">
+                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $helper->__('📖 Пошаговый чек-лист проверки правила'); ?></h4>
+            </div>
+            <div class="fieldset" style="background-color: #fff; border: 1px solid #ccd1d9; border-top: 0; padding: 15px;">
+                <ol style="margin: 0; padding-left: 20px; line-height: 1.8;">
+                    <li><?php echo $helper->__('Заполните основные параметры на вкладке <strong>General Configuration</strong> (включая корректный <code>Title Column Field</code>, например <code>email</code>).'); ?></li>
+                    <li><?php echo $helper->__('Перейдите во вкладку <strong>Tracked Fields</strong>, нажмите <strong>Fetch Fields</strong> и оставьте активными только нужные поля.'); ?></li>
+                    <li><?php echo $helper->__('Нажмите <strong>Save Rule</strong>. Модуль автоматически скомпилирует правила в кэш.'); ?></li>
+                    <li><?php echo $helper->__('Откройте целевой объект в админке (например, покупателя) и измените любое из отслеживаемых полей.'); ?></li>
+                    <li><?php echo $helper->__('Перейдите в меню <strong>System &rarr; Delta Log &rarr; Change Log History</strong> и убедитесь, что запись зафиксирована!'); ?></li>
+                </ol>
+            </div>
+
+        </div>
+    </div>
+</div>

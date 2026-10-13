@@ -35,9 +35,10 @@ $rules = unserialize($cache, ['allowed_classes' => false]);
                     <tr class="headings">
                         <th style="width: 150px;"><?php echo $helper->__('Field Code'); ?> <span class="required">*</span></th>
                         <th style="width: 180px;"><?php echo $helper->__('Field Label'); ?> <span class="required">*</span></th>
-                        <th style="width: 120px;"><?php echo $helper->__('Value Type'); ?></th>
-                        <th style="width: 200px;"><?php echo $helper->__('Source Model'); ?></th>
-                        <th style="width: 200px;"><?php echo $helper->__('Helper Method'); ?></th>
+                        <th style="width: 110px;"><?php echo $helper->__('Value Type'); ?></th>
+                        <th style="width: 180px;"><?php echo $helper->__('Source Model'); ?></th>
+                        <th style="width: 180px;"><?php echo $helper->__('Helper Method'); ?></th>
+                        <th style="width: 180px;"><?php echo $helper->__('Custom Options (key:value)'); ?></th>
                         <th style="width: 80px;"><?php echo $helper->__('Status'); ?></th>
                         <th style="width: 70px;" class="a-center"><?php echo $helper->__('Action'); ?></th>
                     </tr>
@@ -47,10 +48,12 @@ $rules = unserialize($cache, ['allowed_classes' => false]);
                         <?php foreach ($fields as $field): ?>
                             <tr id="field_row_<?php echo $field->getId(); ?>">
                                 <td>
-                                    <input type="text" name="fields[<?php echo $field->getId(); ?>][field_code]" value="<?php echo $this->escapeHtml($field->getFieldCode()); ?>" class="input-text required-entry" />
+                                    <input type="text" name="fields[<?php echo $field->getId(); ?>][field_code]"
+                                           value="<?php echo $this->escapeHtml($field->getFieldCode()); ?>" class="input-text required-entry"/>
                                 </td>
                                 <td>
-                                    <input type="text" name="fields[<?php echo $field->getId(); ?>][field_label]" value="<?php echo $this->escapeHtml($field->getFieldLabel()); ?>" class="input-text required-entry" />
+                                    <input type="text" name="fields[<?php echo $field->getId(); ?>][field_label]"
+                                           value="<?php echo $this->escapeHtml($field->getFieldLabel()); ?>" class="input-text required-entry"/>
                                 </td>
                                 <td>
                                     <select name="fields[<?php echo $field->getId(); ?>][value_type]" class="select">
@@ -72,10 +75,21 @@ $rules = unserialize($cache, ['allowed_classes' => false]);
                                     </select>
                                 </td>
                                 <td>
-                                    <input type="text" name="fields[<?php echo $field->getId(); ?>][source_model]" value="<?php echo $this->escapeHtml($field->getSourceModel()); ?>" class="input-text" placeholder="e.g. customer/attribute_source_group" />
+                                    <input type="text" name="fields[<?php echo $field->getId(); ?>][source_model]"
+                                           value="<?php echo $this->escapeHtml($field->getSourceModel()); ?>" class="input-text"
+                                           placeholder="e.g. customer/attribute_source_group"/>
                                 </td>
                                 <td>
-                                    <input type="text" name="fields[<?php echo $field->getId(); ?>][helper_method]" value="<?php echo $this->escapeHtml($field->getHelperMethod()); ?>" class="input-text" placeholder="e.g. deltalog/data::getOptions" />
+                                    <input type="text" name="fields[<?php echo $field->getId(); ?>][helper_method]"
+                                           value="<?php echo $this->escapeHtml($field->getHelperMethod()); ?>" class="input-text"
+                                           placeholder="e.g. deltalog/data::getOptions"/>
+                                </td>
+                                <td>
+                                    <input type="text"
+                                           name="fields[<?php echo $field->getId(); ?>][custom_options_raw]"
+                                           value="<?php echo $this->escapeHtml($this->formatCustomOptionsToRaw($field->getCustomOptions())); ?>"
+                                           class="input-text"
+                                           placeholder="e.g. 1:Male, 2:Female"/>
                                 </td>
                                 <td>
                                     <select name="fields[<?php echo $field->getId(); ?>][is_active]" class="select">
@@ -100,6 +114,11 @@ $rules = unserialize($cache, ['allowed_classes' => false]);
             </div>
         </div>
     </div>
+
+    <?php echo $this->getLayout()
+            ->createBlock('adminhtml/template')
+            ->setTemplate('modestox/deltalog/rule/instruction/fields.phtml')
+            ->toHtml(); ?>
 </div>
 
 <script type="text/javascript">
@@ -123,6 +142,7 @@ $rules = unserialize($cache, ['allowed_classes' => false]);
             '</td>' +
             '<td><input type="text" name="fields[' + id + '][source_model]" value="' + (data.source_model || '') + '" class="input-text" /></td>' +
             '<td><input type="text" name="fields[' + id + '][helper_method]" value="" class="input-text" /></td>' +
+            '<td><input type="text" name="fields[' + id + '][custom_options_raw]" value="' + (data.custom_options_raw || '') + '" class="input-text" placeholder="e.g. 1:Male, 2:Female" /></td>' +
             '<td>' +
             '<select name="fields[' + id + '][is_active]" class="select">' +
             '<option value="1"><?php echo $helper->__('Active'); ?></option>' +
@@ -130,7 +150,9 @@ $rules = unserialize($cache, ['allowed_classes' => false]);
             '</select>' +
             '</td>' +
             '<td class="a-center">' +
-            '<button type="button" class="button delete" onclick="removeRuleFieldRow(this)"><span><span><?php echo $helper->__('Delete'); ?></span></span></button>' +
+            '<button type="button" class="button delete" onclick="removeRuleFieldRow(this)"><span><span><?php echo $helper->__(
+                    'Delete',
+            ); ?></span></span></button>' +
             '</td>' +
             '</tr>';
 
@@ -162,11 +184,11 @@ $rules = unserialize($cache, ['allowed_classes' => false]);
                 table_name: tableName,
                 entity_type: entityType
             },
-            onSuccess: function(response) {
+            onSuccess: function (response) {
                 try {
                     var result = response.responseText.evalJSON();
                     if (result && result.length > 0) {
-                        result.each(function(field) {
+                        result.each(function (field) {
                             addRuleFieldRow(field);
                         });
                     } else {
@@ -178,5 +200,6 @@ $rules = unserialize($cache, ['allowed_classes' => false]);
             }
         });
     }
+
     //]]>
 </script>

@@ -32,4 +32,34 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Tab_Fields extends Mage_Adminh
 
         return [];
     }
+
+    /**
+     * Format custom options array into raw string (key:value, key:value) for admin template
+     *
+     * @param mixed $customOptions
+     * @return string
+     */
+    public function formatCustomOptionsToRaw($customOptions): string
+    {
+        if (empty($customOptions)) {
+            return '';
+        }
+
+        if (is_string($customOptions)) {
+            $decoded = json_decode($customOptions, true);
+            $customOptions = is_array($decoded) ? $decoded : [];
+        }
+
+        if (!is_array($customOptions)) {
+            return '';
+        }
+
+        $pairs = [];
+        foreach ($customOptions as $key => $val) {
+            $cleanKey = str_replace('v_', '', (string)$key);
+            $pairs[] = sprintf('%s:%s', $cleanKey, $val);
+        }
+
+        return implode(', ', $pairs);
+    }
 }
