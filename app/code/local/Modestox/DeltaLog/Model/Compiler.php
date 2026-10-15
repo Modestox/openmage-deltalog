@@ -11,11 +11,11 @@ class Modestox_DeltaLog_Model_Compiler
 {
     public const CACHE_KEY = 'modestox_deltalog_compiled_rules';
 
-    /** @var array|null per-request memo: the observer asks for the rules on every model save */
+    /** @var array|null */
     protected static ?array $_memo = null;
 
     /**
-     * Get compiled active tracked entities rules from Cache or Build on the fly
+     * Get compiled rules.
      *
      * @return array
      */
@@ -28,8 +28,6 @@ class Modestox_DeltaLog_Model_Compiler
         $cache = Mage::app()->loadCache(self::CACHE_KEY);
         if ($cache !== false) {
             $unserialized = @unserialize($cache, ['allowed_classes' => false]);
-            // an EMPTY array is a valid cached result ("no rules"): without this the rules
-            // would be rebuilt from the database on every single model save
             if (is_array($unserialized)) {
                 return self::$_memo = $unserialized;
             }
@@ -39,7 +37,7 @@ class Modestox_DeltaLog_Model_Compiler
     }
 
     /**
-     * Build rules from DB + static XML config and save to OpenMage cache
+     * Recompile rules cache.
      *
      * @return array
      */
@@ -49,7 +47,6 @@ class Modestox_DeltaLog_Model_Compiler
         /** @var Modestox_DeltaLog_Helper_Data $helper */
         $helper = Mage::helper('modestox_deltalog');
 
-        // 1. Load active rules from Database
         /** @var Modestox_DeltaLog_Model_Resource_Rule_Collection $ruleCollection */
         $ruleCollection = Mage::getModel('modestox_deltalog/rule')->getCollection();
         $ruleCollection->addFieldToFilter('is_active', 1);
@@ -86,7 +83,6 @@ class Modestox_DeltaLog_Model_Compiler
                 ];
             }
 
-            // Записываем правило в скомпилированный массив
             $compiledRules[$tableName] = [
                 'title'          => (string)$rule->getTitle(),
                 'table_name'     => $tableName,
@@ -98,7 +94,7 @@ class Modestox_DeltaLog_Model_Compiler
 
             $helper->debug('compiled rule "' . $tableName . '", fields: ' . count($fieldsData));
         }
-        // 2. Merge static rules from XML config (Fallback)
+
         $xmlTracked = Mage::getConfig()->getNode('global/tracked_entities');
         if ($xmlTracked) {
             foreach ($xmlTracked->children() as $entityNode) {
@@ -128,7 +124,6 @@ class Modestox_DeltaLog_Model_Compiler
             }
         }
 
-        // Save to OpenMage cache without expiration time
         Mage::app()->saveCache(
             serialize($compiledRules),
             self::CACHE_KEY,

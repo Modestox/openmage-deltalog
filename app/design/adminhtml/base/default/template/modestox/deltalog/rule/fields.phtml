@@ -33,14 +33,14 @@ $rules = unserialize($cache, ['allowed_classes' => false]);
                 <table cellspacing="0" class="data" id="rule_fields_table">
                     <thead>
                     <tr class="headings">
-                        <th style="width: 150px;"><?php echo $helper->__('Field Code'); ?> <span class="required">*</span></th>
-                        <th style="width: 180px;"><?php echo $helper->__('Field Label'); ?> <span class="required">*</span></th>
-                        <th style="width: 110px;"><?php echo $helper->__('Value Type'); ?></th>
-                        <th style="width: 180px;"><?php echo $helper->__('Source Model'); ?></th>
-                        <th style="width: 180px;"><?php echo $helper->__('Helper Method'); ?></th>
-                        <th style="width: 180px;"><?php echo $helper->__('Custom Options (key:value)'); ?></th>
-                        <th style="width: 80px;"><?php echo $helper->__('Status'); ?></th>
-                        <th style="width: 70px;" class="a-center"><?php echo $helper->__('Action'); ?></th>
+                        <th class="col-field-code"><?php echo $helper->__('Field Code'); ?> <span class="required">*</span></th>
+                        <th class="col-field-label"><?php echo $helper->__('Field Label'); ?> <span class="required">*</span></th>
+                        <th class="col-value-type"><?php echo $helper->__('Value Type'); ?></th>
+                        <th class="col-source-model"><?php echo $helper->__('Source Model'); ?></th>
+                        <th class="col-helper-method"><?php echo $helper->__('Helper Method'); ?></th>
+                        <th class="col-custom-options"><?php echo $helper->__('Custom Options (key:value)'); ?></th>
+                        <th class="col-status"><?php echo $helper->__('Status'); ?></th>
+                        <th class="col-action a-center"><?php echo $helper->__('Action'); ?></th>
                     </tr>
                     </thead>
                     <tbody id="rule_fields_container">

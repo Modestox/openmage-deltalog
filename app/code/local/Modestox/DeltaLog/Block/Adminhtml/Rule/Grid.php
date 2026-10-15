@@ -10,14 +10,14 @@
 class Modestox_DeltaLog_Block_Adminhtml_Rule_Grid extends Mage_Adminhtml_Block_Widget_Grid
 {
     /**
-     * Helper instance
+     * Helper instance.
      *
      * @var Modestox_DeltaLog_Helper_Data|null
      */
     protected ?Modestox_DeltaLog_Helper_Data $_helper = null;
 
     /**
-     * Get module helper
+     * Get module helper.
      *
      * @return Modestox_DeltaLog_Helper_Data
      */
@@ -31,7 +31,7 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Grid extends Mage_Adminhtml_Block_W
     }
 
     /**
-     * Set grid defaults
+     * Constructor.
      */
     public function __construct()
     {
@@ -44,7 +44,7 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Grid extends Mage_Adminhtml_Block_W
     }
 
     /**
-     * Prepare collection
+     * Prepare collection.
      *
      * @return self
      */
@@ -58,7 +58,7 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Grid extends Mage_Adminhtml_Block_W
     }
 
     /**
-     * Prepare grid columns
+     * Prepare grid columns.
      *
      * @return self
      */
@@ -139,7 +139,7 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Grid extends Mage_Adminhtml_Block_W
     }
 
     /**
-     * Prepare mass actions
+     * Prepare massaction.
      *
      * @return self
      */
@@ -175,7 +175,7 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Grid extends Mage_Adminhtml_Block_W
     }
 
     /**
-     * Row click URL
+     * Get row URL.
      *
      * @param Mage_Core_Model_Abstract $row
      * @return string
@@ -186,7 +186,7 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Grid extends Mage_Adminhtml_Block_W
     }
 
     /**
-     * Grid AJAX URL
+     * Get grid URL.
      *
      * @return string
      */

@@ -11,6 +11,11 @@
 <layout version="0.1.0">
     <!-- Grid List Action -->
     <adminhtml_rule_index>
+        <reference name="head">
+            <action method="addCss">
+                <name>modestox/deltalog/styles.css</name>
+            </action>
+        </reference>
         <reference name="content">
             <block type="modestox_deltalog/adminhtml_rule" name="modestox_deltalog_rule" />
         </reference>
@@ -23,6 +28,11 @@
 
     <!-- Create / Edit Action -->
     <adminhtml_rule_edit>
+        <reference name="head">
+            <action method="addCss">
+                <name>modestox/deltalog/styles.css</name>
+            </action>
+        </reference>
         <reference name="left">
             <block type="modestox_deltalog/adminhtml_rule_edit_tabs" name="deltalog_rule_tabs" />
         </reference>

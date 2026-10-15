@@ -10,7 +10,7 @@
 class Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Tab_Fields extends Mage_Adminhtml_Block_Widget
 {
     /**
-     * Set custom template for fields grid
+     * Constructor.
      */
     public function __construct()
     {
@@ -19,7 +19,7 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Tab_Fields extends Mage_Adminh
     }
 
     /**
-     * Get rule fields collection
+     * Get rule fields.
      *
      * @return Modestox_DeltaLog_Model_Resource_Rule_Field_Collection|array
      */
@@ -34,7 +34,7 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Tab_Fields extends Mage_Adminh
     }
 
     /**
-     * Format custom options array into raw string (key:value, key:value) for admin template
+     * Format custom options to raw string.
      *
      * @param mixed $customOptions
      * @return string

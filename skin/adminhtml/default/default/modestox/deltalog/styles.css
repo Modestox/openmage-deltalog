@@ -1,0 +1,137 @@
+/* Table Columns Widths */
+#rule_fields_table .col-field-code {
+    width: 150px;
+}
+
+#rule_fields_table .col-field-label {
+    width: 180px;
+}
+
+#rule_fields_table .col-value-type {
+    width: 110px;
+}
+
+#rule_fields_table .col-source-model,
+#rule_fields_table .col-helper-method,
+#rule_fields_table .col-custom-options {
+    width: 180px;
+}
+
+#rule_fields_table .col-status {
+    width: 80px;
+}
+
+#rule_fields_table .col-action {
+    width: 70px;
+}
+
+/* Instructions Component Styles */
+.deltalog-instruction-head {
+    margin-top: 25px;
+}
+
+.deltalog-instruction-fieldset,
+.deltalog-guide-outer-fieldset {
+    background-color: #f8f9fa;
+    border: 1px solid #ccd1d9;
+    border-top: 0;
+    padding: 15px 20px;
+}
+
+.deltalog-instruction-list {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #333;
+}
+
+.deltalog-instruction-item {
+    margin-bottom: 8px;
+}
+
+.deltalog-instruction-sublist {
+    padding-left: 15px;
+    margin-top: 3px;
+}
+
+.deltalog-instruction-priority-title {
+    color: #2b5d8c;
+    font-weight: bold;
+}
+
+.deltalog-instruction-priority-list {
+    padding-left: 20px;
+    font-weight: normal;
+    margin-top: 3px;
+    color: #333;
+}
+
+/* Detailed Guide Component Styles */
+.deltalog-guide-wrapper {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #2f2f2f;
+}
+
+.deltalog-guide-section-head {
+    margin-top: 10px;
+}
+
+.deltalog-guide-section-head-spaced {
+    margin-top: 25px;
+}
+
+.deltalog-guide-inner-fieldset {
+    background-color: #fff;
+    border: 1px solid #ccd1d9;
+    border-top: 0;
+    padding: 15px;
+}
+
+.deltalog-guide-paragraph-top {
+    margin-top: 0;
+}
+
+.deltalog-guide-paragraph-bottom {
+    margin-bottom: 0;
+}
+
+.deltalog-guide-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid #ccd1d9;
+}
+
+.deltalog-guide-table-header {
+    background-color: #f6f6f6;
+    text-align: left;
+}
+
+.deltalog-guide-table th {
+    padding: 10px 12px;
+    font-weight: bold;
+    border: 1px solid #ccd1d9;
+}
+
+.deltalog-guide-table .col-model-type {
+    width: 20%;
+}
+
+.deltalog-guide-table .col-model-structure,
+.deltalog-guide-table .col-model-examples {
+    width: 40%;
+}
+
+.deltalog-guide-td {
+    padding: 10px 12px;
+    vertical-align: top;
+    border: 1px solid #ccd1d9;
+}
+
+.deltalog-guide-checklist {
+    margin: 0;
+    padding-left: 20px;
+    line-height: 1.8;
+}

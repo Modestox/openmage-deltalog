@@ -10,7 +10,7 @@
 class Modestox_DeltaLog_Model_Resource_Rule_Field_Collection extends Mage_Core_Model_Resource_Db_Collection_Abstract
 {
     /**
-     * Initialize model and resource model
+     * Constructor.
      *
      * @return void
      */

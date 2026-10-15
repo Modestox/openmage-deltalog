@@ -63,62 +63,6 @@
                 </observers>
             </model_save_after>
         </events>
-
-        <!-- <tracked_entities>
-            <customer_entity>
-                <label>Customer Account</label>
-                <model_alias>customer/customer</model_alias>
-                <table_name>customer_entity</table_name>
-                <title_field>email</title_field>
-                <edit_url_route>adminhtml/customer/edit</edit_url_route>
-                <fields>
-                    <website_id>
-                        <label>Associated Website</label>
-                        <source_model>adminhtml/system_config_source_website</source_model>
-                    </website_id>
-
-                    <created_in>Created From</created_in>
-
-                    <group_id>
-                        <label>Group</label>
-                        <source_model>customer/customer_attribute_source_group</source_model>
-                    </group_id>
-
-                    <disable_auto_group_change>
-                        <label>Disable Automatic Group Change Based on VAT ID</label>
-                        <options>
-                            <v_1>Yes</v_1>
-                            <v_0>No</v_0>
-                        </options>
-                    </disable_auto_group_change>
-
-                    <prefix>Prefix</prefix>
-                    <firstname>First Name</firstname>
-                    <middlename>Middle Name/Initial</middlename>
-                    <lastname>Last Name</lastname>
-                    <suffix>Suffix</suffix>
-                    <email>Email</email>
-
-                    <dob type="date">Date of Birth</dob>
-
-                    <taxvat>VAT Number</taxvat>
-
-                    <gender>
-                        <label>Gender</label>
-                        <options>
-                            <v_1>Male</v_1>
-                            <v_2>Female</v_2>
-                        </options>
-                    </gender>
-
-                    <shops_ids>
-                        <label>Assigned Shops</label>
-                        <source_model>shopanalytic/system_config_source_shop_all</source_model>
-                    </shops_ids>
-                </fields>
-            </customer_entity>
-        </tracked_entities> -->
-
     </global>
 
     <admin>
@@ -141,13 +85,37 @@
                 </modestox_deltalog>
             </updates>
         </layout>
+        <translate>
+            <modules>
+                <Modestox_DeltaLog>
+                    <files>
+                        <default>modestox/Modestox_DeltaLog.csv</default>
+                    </files>
+                </Modestox_DeltaLog>
+            </modules>
+        </translate>
     </adminhtml>
+
+    <crontab>
+        <jobs>
+            <modestox_deltalog_cleanup>
+                <schedule>
+                    <cron_expr>0 3 * * *</cron_expr>
+                </schedule>
+                <run>
+                    <model>modestox_deltalog/cron::cleanOldLogs</model>
+                </run>
+            </modestox_deltalog_cleanup>
+        </jobs>
+    </crontab>
 
     <default>
         <modestox_deltalog>
             <general>
-                <enabled>1</enabled>
-                <debug>1</debug>
+                <enabled>0</enabled>
+                <tracking_mode>admin_only</tracking_mode>
+                <retention_days>120</retention_days>
+                <debug>0</debug>
             </general>
         </modestox_deltalog>
     </default>

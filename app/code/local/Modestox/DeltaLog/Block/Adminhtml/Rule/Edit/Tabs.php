@@ -10,14 +10,14 @@
 class Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Tabs extends Mage_Adminhtml_Block_Widget_Tabs
 {
     /**
-     * Helper instance
+     * Helper instance.
      *
      * @var Modestox_DeltaLog_Helper_Data|null
      */
     protected ?Modestox_DeltaLog_Helper_Data $_helper = null;
 
     /**
-     * Get module helper
+     * Get module helper.
      *
      * @return Modestox_DeltaLog_Helper_Data
      */
@@ -31,7 +31,7 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Tabs extends Mage_Adminhtml_Bl
     }
 
     /**
-     * Initialize tabs
+     * Constructor.
      */
     public function __construct()
     {
@@ -42,7 +42,7 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Tabs extends Mage_Adminhtml_Bl
     }
 
     /**
-     * Prepare tabs layout
+     * Prepare tabs layout.
      *
      * @return self
      */

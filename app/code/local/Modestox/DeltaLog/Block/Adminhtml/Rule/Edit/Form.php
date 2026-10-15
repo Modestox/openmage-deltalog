@@ -10,7 +10,7 @@
 class Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Form extends Mage_Adminhtml_Block_Widget_Form
 {
     /**
-     * Prepare form container for tabs
+     * Prepare form.
      *
      * @return self
      */

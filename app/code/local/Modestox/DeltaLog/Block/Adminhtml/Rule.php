@@ -10,14 +10,14 @@
 class Modestox_DeltaLog_Block_Adminhtml_Rule extends Mage_Adminhtml_Block_Widget_Grid_Container
 {
     /**
-     * Helper instance
+     * Helper instance.
      *
      * @var Modestox_DeltaLog_Helper_Data|null
      */
     protected ?Modestox_DeltaLog_Helper_Data $_helper = null;
 
     /**
-     * Get module helper
+     * Get module helper.
      *
      * @return Modestox_DeltaLog_Helper_Data
      */
@@ -31,7 +31,7 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule extends Mage_Adminhtml_Block_Widget
     }
 
     /**
-     * Initialize container parameters
+     * Constructor.
      */
     public function __construct()
     {

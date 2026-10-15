@@ -11,7 +11,7 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Tab_Instruction extends Mage_A
     Mage_Adminhtml_Block_Widget_Tab_Interface
 {
     /**
-     * Set template and child blocks
+     * Constructor.
      */
     protected function _construct(): void
     {
@@ -20,7 +20,7 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Tab_Instruction extends Mage_A
     }
 
     /**
-     * Prepare child blocks for sub-instructions
+     * Prepare layout.
      *
      * @return parent::_prepareLayout()
      */
@@ -28,19 +28,19 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Tab_Instruction extends Mage_A
     {
         $this->setChild(
             'instruction_general',
-            $this->getLayout()->createBlock('adminhtml/template')->setTemplate('modestox/deltalog/rule/instruction/general.phtml')
+            $this->getLayout()->createBlock('adminhtml/template')->setTemplate('modestox/deltalog/rule/instruction/general.phtml'),
         );
 
         $this->setChild(
             'instruction_fields',
-            $this->getLayout()->createBlock('adminhtml/template')->setTemplate('modestox/deltalog/rule/instruction/fields.phtml')
+            $this->getLayout()->createBlock('adminhtml/template')->setTemplate('modestox/deltalog/rule/instruction/fields.phtml'),
         );
 
         return parent::_prepareLayout();
     }
 
     /**
-     * Get tab label
+     * Get tab label.
      *
      * @return string
      */
@@ -50,7 +50,7 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Tab_Instruction extends Mage_A
     }
 
     /**
-     * Get tab title
+     * Get tab title.
      *
      * @return string
      */
@@ -60,7 +60,7 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Tab_Instruction extends Mage_A
     }
 
     /**
-     * Can show tab
+     * Can show tab.
      *
      * @return bool
      */
@@ -70,7 +70,7 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Tab_Instruction extends Mage_A
     }
 
     /**
-     * Is tab hidden
+     * Is tab hidden.
      *
      * @return bool
      */

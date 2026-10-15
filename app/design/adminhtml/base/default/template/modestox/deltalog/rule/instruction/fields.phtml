@@ -11,46 +11,46 @@
 $helper = Mage::helper('modestox_deltalog');
 ?>
 
-<div class="entry-edit-head" style="margin-top: 25px;">
-    <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $helper->__('📖 Справочник по настройке отслеживаемых полей'); ?></h4>
+<div class="entry-edit-head deltalog-instruction-head">
+    <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $helper->__('📖 Tracked Fields Configuration Reference'); ?></h4>
 </div>
-<div class="fieldset" style="background-color: #f8f9fa; border: 1px solid #ccd1d9; border-top: 0; padding: 15px 20px;">
-    <ul style="margin: 0; padding-left: 20px; font-size: 12px; line-height: 1.6; color: #333;">
-        <li style="margin-bottom: 8px;">
-            <strong>Field Code (Код поля):</strong> Точное имя колонки в базе данных (для Flat) или код атрибута (для EAV). По этому коду система отслеживает изменения конкретной переменной (например: <code>email</code>, <code>group_id</code>, <code>gender</code>).
+<div class="fieldset deltalog-instruction-fieldset">
+    <ul class="deltalog-instruction-list">
+        <li class="deltalog-instruction-item">
+            <strong><?php echo $helper->__('Field Code:'); ?></strong> <?php echo $helper->__('Exact database column name (for Flat) or attribute code (for EAV). The system uses this code to track changes to a specific attribute (e.g.,'); ?> <code>email</code>, <code>group_id</code>, <code>gender</code>).
         </li>
-        <li style="margin-bottom: 8px;">
-            <strong>Field Label (Название поля):</strong> Человекочитаемая метка, которая будет выводиться в колонке "Измененный атрибут" журналов (например: <i>"Группа покупателя"</i> вместо <i>group_id</i>).
+        <li class="deltalog-instruction-item">
+            <strong><?php echo $helper->__('Field Label:'); ?></strong> <?php echo $helper->__('A human-readable label displayed in the "Modified Attribute" column of audit logs (e.g.,'); ?> <i>"<?php echo $helper->__('Customer Group'); ?>"</i> <?php echo $helper->__('instead of'); ?> <i>group_id</i>).
         </li>
-        <li style="margin-bottom: 8px;">
-            <strong>Value Type (Тип значения):</strong> Формат данных поля.
-            <ul style="padding-left: 15px; margin-top: 3px;">
-                <li><code>Text / Date</code> — обычное текстовое значение или дата. Выводится как есть.</li>
-                <li><code>Select / Multiselect / Boolean</code> — выпадающие списки или переключатели. Выводятся с подстановкой человекочитаемых названий (например, <i>"Male [1]"</i> вместо просто <i>"1"</i>).</li>
+        <li class="deltalog-instruction-item">
+            <strong><?php echo $helper->__('Value Type:'); ?></strong> <?php echo $helper->__('Field data format.'); ?>
+            <ul class="deltalog-instruction-sublist">
+                <li><code>Text / Date</code> — <?php echo $helper->__('Standard text or date value. Displayed as is.'); ?></li>
+                <li><code>Select / Multiselect / Boolean</code> — <?php echo $helper->__('Dropdowns or toggles. Displayed with mapped human-readable labels (e.g.,'); ?> <i>"Male [1]"</i> <?php echo $helper->__('instead of plain'); ?> <i>"1"</i>).</li>
             </ul>
         </li>
-        <li style="margin-bottom: 8px;">
-            <strong>Source Model (Модель источника EAV/Option):</strong> URI-алиас класса, реализующего получение названий вариантов (например, <code>customer/attribute_source_group</code> или <code>eav/entity_attribute_source_table</code>). Используется для автоматической расшифровки ID в названия.
+        <li class="deltalog-instruction-item">
+            <strong><?php echo $helper->__('Source Model:'); ?></strong> <?php echo $helper->__('URI class alias implementing option label resolution (e.g.,'); ?> <code>customer/attribute_source_group</code> <?php echo $helper->__('or'); ?> <code>eav/entity_attribute_source_table</code>). <?php echo $helper->__('Used for automatic ID-to-label translation.'); ?>
         </li>
-        <li style="margin-bottom: 8px;">
-            <strong>Helper Method (Кастомный метод хелпера):</strong> Вызов метода класса-хелпера в формате <code>alias/helper::methodName</code> (например: <code>modestox_deltalog/data::getStatusOptions</code>). Метод должен возвращать ассоциативный массив вида <code>['key' => 'Label']</code>.
+        <li class="deltalog-instruction-item">
+            <strong><?php echo $helper->__('Helper Method:'); ?></strong> <?php echo $helper->__('Helper class method invocation using'); ?> <code>alias/helper::methodName</code> <?php echo $helper->__('format (e.g.,'); ?> <code>modestox_deltalog/data::getStatusOptions</code>). <?php echo $helper->__('The method must return an associative array structured as'); ?> <code>['key' => 'Label']</code>.
         </li>
-        <li style="margin-bottom: 8px;">
-            <strong>Custom Options (Пользовательские варианты):</strong> Ручной сопоставитель значений в формате <code>key:value</code> через запятую. Напрямую связывает числовые или текстовые значения из БД с их понятными названиями.
-            <br/><i>Примеры заполнения:</i>
-            <ul style="padding-left: 15px; margin-top: 3px;">
-                <li><code>1:Male, 2:Female</code> &mdash; для пола покупателя.</li>
-                <li><code>0:No, 1:Yes</code> &mdash; для логических флагов.</li>
-                <li><code>pending:В обработке, processing:Выполняется, complete:Завершен</code> &mdash; для текстовых статусов.</li>
+        <li class="deltalog-instruction-item">
+            <strong><?php echo $helper->__('Custom Options:'); ?></strong> <?php echo $helper->__('Manual comma-separated key:value mapper. Directly binds raw database values to human-readable labels.'); ?>
+            <br/><i><?php echo $helper->__('Configuration examples:'); ?></i>
+            <ul class="deltalog-instruction-sublist">
+                <li><code>1:Male, 2:Female</code> &mdash; <?php echo $helper->__('for customer gender.'); ?></li>
+                <li><code>0:No, 1:Yes</code> &mdash; <?php echo $helper->__('for boolean flags.'); ?></li>
+                <li><code>pending:Pending, processing:Processing, complete:Complete</code> &mdash; <?php echo $helper->__('for string status codes.'); ?></li>
             </ul>
         </li>
-        <li style="margin-bottom: 8px; color: #2b5d8c; font-weight: bold;">
-            📌 Приоритет разрешения названий значений (Dictionary Resolution):
-            <ol style="padding-left: 20px; font-weight: normal; margin-top: 3px; color: #333;">
-                <li><strong>Custom Options</strong> (ручной ввод имеет наивысший приоритет).</li>
-                <li><strong>Source Model</strong> (если указана модель источника).</li>
-                <li><strong>Helper Method</strong> (если указан хелпер).</li>
-                <li><strong>EAV Attribute Collection</strong> (автоматически для EAV-полей, если ни один из источников выше не задан).</li>
+        <li class="deltalog-instruction-item deltalog-instruction-priority-title">
+            📌 <?php echo $helper->__('Dictionary Resolution Priority:'); ?>
+            <ol class="deltalog-instruction-priority-list">
+                <li><strong><?php echo $helper->__('Custom Options'); ?></strong> (<?php echo $helper->__('manual mapping takes the highest priority'); ?>).</li>
+                <li><strong><?php echo $helper->__('Source Model'); ?></strong> (<?php echo $helper->__('if a source model class is defined'); ?>).</li>
+                <li><strong><?php echo $helper->__('Helper Method'); ?></strong> (<?php echo $helper->__('if a helper method is defined'); ?>).</li>
+                <li><strong><?php echo $helper->__('EAV Attribute Collection'); ?></strong> (<?php echo $helper->__('fallback for EAV fields if no explicit source above is configured'); ?>).</li>
             </ol>
         </li>
     </ul>

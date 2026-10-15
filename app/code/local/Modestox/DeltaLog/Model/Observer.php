@@ -10,7 +10,7 @@
 class Modestox_DeltaLog_Model_Observer
 {
     /**
-     * Intercept model save event and delegate delta processing
+     * Execute on model save after.
      *
      * @param Varien_Event_Observer $observer
      * @return void
@@ -20,17 +20,7 @@ class Modestox_DeltaLog_Model_Observer
         /** @var Modestox_DeltaLog_Helper_Data $helper */
         $helper = Mage::helper('modestox_deltalog');
 
-        // This observer runs on EVERY model save in the whole shop, so the cheapest checks come first.
         if (!$helper->isEnabled()) {
-            return;
-        }
-
-        // Check the area BEFORE touching admin/session: instantiating that session outside the admin
-        // area (frontend, cron, CLI scripts) starts a PHP session as a side effect.
-        if (!Mage::app()->getStore()->isAdmin()) {
-            return;
-        }
-        if (!Mage::getSingleton('admin/session')->isLoggedIn()) {
             return;
         }
 
@@ -40,12 +30,15 @@ class Modestox_DeltaLog_Model_Observer
             return;
         }
 
+        if (!$helper->isCurrentContextTracked()) {
+            return;
+        }
+
         try {
             /** @var Modestox_DeltaLog_Model_Processor $processor */
             $processor = Mage::getModel('modestox_deltalog/processor');
             $processor->processModelChanges($model);
         } catch (Throwable $e) {
-            // never break the standard save flow
             Mage::logException($e);
         }
     }

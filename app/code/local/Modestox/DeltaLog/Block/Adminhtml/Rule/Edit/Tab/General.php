@@ -10,7 +10,7 @@
 class Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Tab_General extends Mage_Adminhtml_Block_Widget_Form
 {
     /**
-     * Prepare general form fields
+     * Prepare general form fields.
      *
      * @return self
      */
@@ -48,7 +48,6 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Tab_General extends Mage_Admin
             'note'   => $helper->__('Enable or disable change tracking for this rule.'),
         ]);
 
-        // Automatically fetch all EAV entity types from DB
         /** @var Mage_Eav_Model_Resource_Entity_Type_Collection $eavTypes */
         $eavTypes = Mage::getResourceModel('eav/entity_type_collection');
         $eavMappingJs = [];
@@ -74,7 +73,6 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Tab_General extends Mage_Admin
                         }
                     }
                 } catch (Throwable $e) {
-                    // Fallback
                 }
             }
 
@@ -199,7 +197,6 @@ class Modestox_DeltaLog_Block_Adminhtml_Rule_Edit_Tab_General extends Mage_Admin
             'note'  => $helper->__('Admin route for direct link creation to the entity edit page (e.g. adminhtml/customer/edit).'),
         ]);
 
-        // Полная инструкция на русском языке под формой
         $instructionBlock = $this
             ->getLayout()
             ->createBlock('adminhtml/template')

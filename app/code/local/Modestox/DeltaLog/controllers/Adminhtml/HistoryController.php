@@ -10,9 +10,9 @@
 class Modestox_DeltaLog_Adminhtml_HistoryController extends Mage_Adminhtml_Controller_Action
 {
     /**
-     * Init action layout and active menu
+     * Init action layout and active menu.
      *
-     * @return Modestox_DeltaLog_Adminhtml_HistoryController
+     * @return self
      */
     protected function _initAction(): self
     {
@@ -26,7 +26,7 @@ class Modestox_DeltaLog_Adminhtml_HistoryController extends Mage_Adminhtml_Contr
     }
 
     /**
-     * Index Action - Render main grid container
+     * Index action.
      *
      * @return void
      */
@@ -42,7 +42,7 @@ class Modestox_DeltaLog_Adminhtml_HistoryController extends Mage_Adminhtml_Contr
     }
 
     /**
-     * Grid Action - Handles AJAX sorting, filtering, and pagination
+     * Grid action.
      *
      * @return void
      */
@@ -54,7 +54,7 @@ class Modestox_DeltaLog_Adminhtml_HistoryController extends Mage_Adminhtml_Contr
     }
 
     /**
-     * ACL check for admin authorization
+     * ACL check for admin authorization.
      *
      * @return bool
      */

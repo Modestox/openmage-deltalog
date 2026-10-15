@@ -11,37 +11,37 @@
 $helper = Mage::helper('modestox_deltalog');
 ?>
 
-<div class="entry-edit-head" style="margin-top: 25px;">
-    <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $helper->__('📖 Справочник по настройке полей правила'); ?></h4>
+<div class="entry-edit-head deltalog-instruction-head">
+    <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $helper->__('📖 Rule Settings Reference'); ?></h4>
 </div>
-<div class="fieldset" style="background-color: #f8f9fa; border: 1px solid #ccd1d9; border-top: 0; padding: 15px 20px;">
-    <ul style="margin: 0; padding-left: 20px; font-size: 12px; line-height: 1.6; color: #333;">
-        <li style="margin-bottom: 8px;">
-            <strong>Rule Title (Название правила):</strong> Название правила, которое отображается в общем списке правил в админке. На логирование не влияет.
+<div class="fieldset deltalog-instruction-fieldset">
+    <ul class="deltalog-instruction-list">
+        <li class="deltalog-instruction-item">
+            <strong><?php echo $helper->__('Rule Title:'); ?></strong> <?php echo $helper->__('Rule name displayed in the rule grid within the admin panel. Does not affect logging behavior.'); ?>
         </li>
-        <li style="margin-bottom: 8px;">
-            <strong>Entity / Data Source Type (Тип источника данных):</strong>
-            определяет архитектуру сущности.
-            <ul style="padding-left: 15px; margin-top: 3px;">
-                <li><code>EAV Entity</code> (Customer, Product и т.д.) — автоматически заполнит имя таблицы БД и алиас модели, заблокировав их от случайных ошибок ввода.</li>
-                <li><code>Flat Table (Custom)</code> — выберите для логирования обычных (плоских) таблиц MySQL (например, кастомных таблиц сторонних модулей).</li>
+        <li class="deltalog-instruction-item">
+            <strong><?php echo $helper->__('Entity / Data Source Type:'); ?></strong>
+            <?php echo $helper->__('defines the architectural type of the entity.'); ?>
+            <ul class="deltalog-instruction-sublist">
+                <li><code>EAV Entity</code> (Customer, Product, etc.) — <?php echo $helper->__('automatically populates the DB table name and model alias, locking them against accidental input errors.'); ?></li>
+                <li><code>Flat Table (Custom)</code> — <?php echo $helper->__('select to log standard (flat) MySQL tables (e.g., custom module tables).'); ?></li>
             </ul>
         </li>
-        <li style="margin-bottom: 8px;">
-            <strong>Database Table / Entity Code (Таблица БД / Код сущности):</strong>
-            имя таблицы в базе данных без системного префикса (например, <code>customer_entity</code> или <code>sales_flat_order</code>). По этому значению перехватчик определяет подходящее правило.
+        <li class="deltalog-instruction-item">
+            <strong><?php echo $helper->__('Database Table / Entity Code:'); ?></strong>
+            <?php echo $helper->__('database table name without system prefix (e.g.,'); ?> <code>customer_entity</code> <?php echo $helper->__('or'); ?> <code>sales_flat_order</code>). <?php echo $helper->__('The interceptor uses this value to match active rules.'); ?>
         </li>
-        <li style="margin-bottom: 8px;">
-            <strong>Model Alias (Алиас модели OpenMage):</strong>
-            URI-путь для инстанцирования модели через <code>Mage::getModel()</code> (например, <code>customer/customer</code>, <code>catalog/product</code>).
+        <li class="deltalog-instruction-item">
+            <strong><?php echo $helper->__('Model Alias:'); ?></strong>
+            <?php echo $helper->__('URI path for model instantiation via'); ?> <code>Mage::getModel()</code> (<?php echo $helper->__('e.g.,'); ?> <code>customer/customer</code>, <code>catalog/product</code>).
         </li>
-        <li style="margin-bottom: 8px;">
-            <strong>Title Column Field (Заголовок записи):</strong>
-            имя поля или атрибута, значение которого отображается в журнале изменений рядом с ID записи (например, если указать <code>email</code>, в логе зафиксируется: <i>"John Doe (john@example.com) [ID: 7]"</i>).
+        <li class="deltalog-instruction-item">
+            <strong><?php echo $helper->__('Title Column Field:'); ?></strong>
+            <?php echo $helper->__('field or attribute name whose value will be displayed in audit logs alongside the record ID (e.g., specifying'); ?> <code>email</code> <?php echo $helper->__('results in'); ?> <i>"John Doe (john@example.com) [ID: 7]"</i>).
         </li>
-        <li style="margin-bottom: 8px;">
-            <strong>Admin Edit URL Route (Роут перехода в админке):</strong>
-            системный путь к странице редактирования записи (например: <code>adminhtml/customer/edit</code>). Если роут указан, наименование записи в журнале станет кликабельной ссылкой для прямого перехода в карточку.
+        <li class="deltalog-instruction-item">
+            <strong><?php echo $helper->__('Admin Edit URL Route:'); ?></strong>
+            <?php echo $helper->__('system path to the entity edit page (e.g.,'); ?> <code>adminhtml/customer/edit</code>). <?php echo $helper->__('When configured, the record name in history logs becomes a clickable link for direct navigation.'); ?>
         </li>
     </ul>
 </div>

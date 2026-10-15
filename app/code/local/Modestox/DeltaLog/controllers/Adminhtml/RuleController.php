@@ -10,14 +10,14 @@
 class Modestox_DeltaLog_Adminhtml_RuleController extends Mage_Adminhtml_Controller_Action
 {
     /**
-     * Helper instance
+     * Helper instance.
      *
      * @var Modestox_DeltaLog_Helper_Data|null
      */
     protected ?Modestox_DeltaLog_Helper_Data $_helper = null;
 
     /**
-     * Get module helper
+     * Get module helper.
      *
      * @return Modestox_DeltaLog_Helper_Data
      */
@@ -31,7 +31,7 @@ class Modestox_DeltaLog_Adminhtml_RuleController extends Mage_Adminhtml_Controll
     }
 
     /**
-     * Check ACL permissions for rules management
+     * Check ACL permissions.
      *
      * @return bool
      */
@@ -41,7 +41,7 @@ class Modestox_DeltaLog_Adminhtml_RuleController extends Mage_Adminhtml_Controll
     }
 
     /**
-     * Initialize page layout and active menu
+     * Init action layout and breadcrumbs.
      *
      * @return self
      */
@@ -57,7 +57,7 @@ class Modestox_DeltaLog_Adminhtml_RuleController extends Mage_Adminhtml_Controll
     }
 
     /**
-     * Display rules grid
+     * Index action.
      *
      * @return void
      */
@@ -69,7 +69,7 @@ class Modestox_DeltaLog_Adminhtml_RuleController extends Mage_Adminhtml_Controll
     }
 
     /**
-     * AJAX Grid Action for filtering and sorting
+     * Grid action.
      *
      * @return void
      */
@@ -80,7 +80,7 @@ class Modestox_DeltaLog_Adminhtml_RuleController extends Mage_Adminhtml_Controll
     }
 
     /**
-     * Create new rule
+     * New action.
      *
      * @return void
      */
@@ -90,7 +90,7 @@ class Modestox_DeltaLog_Adminhtml_RuleController extends Mage_Adminhtml_Controll
     }
 
     /**
-     * Edit existing rule
+     * Edit action.
      *
      * @return void
      */
@@ -122,7 +122,7 @@ class Modestox_DeltaLog_Adminhtml_RuleController extends Mage_Adminhtml_Controll
     }
 
     /**
-     * Save rule action
+     * Save action.
      *
      * @return void
      */
@@ -156,7 +156,6 @@ class Modestox_DeltaLog_Adminhtml_RuleController extends Mage_Adminhtml_Controll
             $model->save();
             $ruleId = (int)$model->getId();
 
-            // 1. Process Fields
             if (isset($data['fields']) && is_array($data['fields'])) {
                 $existingFields = [];
                 foreach ($model->getActiveFieldsCollection() as $field) {
@@ -197,7 +196,6 @@ class Modestox_DeltaLog_Adminhtml_RuleController extends Mage_Adminhtml_Controll
                     }
                 }
 
-                // Delete removed fields
                 foreach ($existingFields as $existingId => $fieldObj) {
                     if (!in_array($existingId, $processedIds, true)) {
                         $fieldObj->delete();
@@ -205,7 +203,6 @@ class Modestox_DeltaLog_Adminhtml_RuleController extends Mage_Adminhtml_Controll
                 }
             }
 
-            // 2. Recompile rules cache
             Mage::getModel('modestox_deltalog/compiler')->recompileRulesCache();
 
             Mage::getSingleton('adminhtml/session')->addSuccess($this->_getHelper()->__('Tracking rule has been successfully saved.'));
@@ -227,7 +224,7 @@ class Modestox_DeltaLog_Adminhtml_RuleController extends Mage_Adminhtml_Controll
     }
 
     /**
-     * Delete single rule action
+     * Delete action.
      *
      * @return void
      */
@@ -252,7 +249,7 @@ class Modestox_DeltaLog_Adminhtml_RuleController extends Mage_Adminhtml_Controll
     }
 
     /**
-     * Mass delete action
+     * Mass delete action.
      *
      * @return void
      */
@@ -284,7 +281,7 @@ class Modestox_DeltaLog_Adminhtml_RuleController extends Mage_Adminhtml_Controll
     }
 
     /**
-     * Mass status change action
+     * Mass status action.
      *
      * @return void
      */
@@ -318,7 +315,7 @@ class Modestox_DeltaLog_Adminhtml_RuleController extends Mage_Adminhtml_Controll
     }
 
     /**
-     * AJAX action to fetch table columns or EAV attributes
+     * Load fields action.
      *
      * @return void
      */

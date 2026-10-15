@@ -10,7 +10,7 @@
 class Modestox_DeltaLog_Model_Inspector
 {
     /**
-     * Get list of database columns for flat table
+     * Get table columns.
      *
      * @param string $tableName
      * @return array
@@ -48,7 +48,7 @@ class Modestox_DeltaLog_Model_Inspector
     }
 
     /**
-     * Get list of EAV attributes for entity type
+     * Get EAV attributes.
      *
      * @param string $entityTypeCode
      * @return array
@@ -89,7 +89,7 @@ class Modestox_DeltaLog_Model_Inspector
     }
 
     /**
-     * Map database data types to internal delta value types
+     * Map database type to value type.
      *
      * @param string $dbType
      * @return string

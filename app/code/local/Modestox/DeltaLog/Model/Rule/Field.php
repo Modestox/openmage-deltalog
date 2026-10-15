@@ -10,7 +10,7 @@
 class Modestox_DeltaLog_Model_Rule_Field extends Mage_Core_Model_Abstract
 {
     /**
-     * Initialize resource model
+     * Constructor.
      *
      * @return void
      */
@@ -20,7 +20,7 @@ class Modestox_DeltaLog_Model_Rule_Field extends Mage_Core_Model_Abstract
     }
 
     /**
-     * Get custom options map from JSON or array
+     * Get parsed custom options.
      *
      * @return array
      */
@@ -41,7 +41,7 @@ class Modestox_DeltaLog_Model_Rule_Field extends Mage_Core_Model_Abstract
     }
 
     /**
-     * Alias method for template getter compatibility
+     * Get custom options.
      *
      * @return array
      */
@@ -51,9 +51,9 @@ class Modestox_DeltaLog_Model_Rule_Field extends Mage_Core_Model_Abstract
     }
 
     /**
-     * Prepare custom options array from raw input string (custom_options_raw) before saving
+     * Prepare data before save.
      *
-     * @return Modestox_DeltaLog_Model_Rule_Field
+     * @return self
      */
     protected function _beforeSave(): self
     {
@@ -89,9 +89,9 @@ class Modestox_DeltaLog_Model_Rule_Field extends Mage_Core_Model_Abstract
     }
 
     /**
-     * Trigger rule cache recompile on field delete
+     * Handle actions after delete.
      *
-     * @return Modestox_DeltaLog_Model_Rule_Field
+     * @return self
      */
     protected function _afterDelete(): self
     {

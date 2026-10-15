@@ -158,15 +158,17 @@ class Modestox_DeltaLog_Block_Adminhtml_History_Grid extends Mage_Adminhtml_Bloc
         Mage_Adminhtml_Block_Widget_Grid_Column $column,
         bool $isExport,
     ): string {
+        $entityId = $row->getData('entity_id');
+        $displayTitle = $value !== '' ? $value : ('ID: ' . $entityId);
+
         if ($isExport) {
-            return $value;
+            return $displayTitle;
         }
 
         $tableName = $row->getData('table_name');
-        $entityId = $row->getData('entity_id');
 
         if (!$tableName || !$entityId) {
-            return $value;
+            return $this->escapeHtml($displayTitle);
         }
 
         $editRoute = null;
@@ -198,13 +200,13 @@ class Modestox_DeltaLog_Block_Adminhtml_History_Grid extends Mage_Adminhtml_Bloc
 
             return sprintf(
                 '<a href="%s" target="_blank" title="%s">%s</a>',
-                $liveUrl,
-                $this->_getHelper()->__('Edit Record'),
-                $this->escapeHtml($value ?: ('ID: ' . $entityId)),
+                $this->escapeHtml($liveUrl),
+                $this->escapeHtml($this->_getHelper()->__('Edit Record')),
+                $this->escapeHtml($displayTitle)
             );
         }
 
-        return $value ?: ('ID: ' . $entityId);
+        return $this->escapeHtml($displayTitle);
     }
 
     /**

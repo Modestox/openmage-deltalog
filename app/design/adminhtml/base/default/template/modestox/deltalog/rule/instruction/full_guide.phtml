@@ -14,83 +14,115 @@ $helper = Mage::helper('modestox_deltalog');
 <div class="entry-edit">
     <div class="entry-edit-head">
         <h4 class="icon-head head-edit-form fieldset-legend">
-            <?php echo $helper->__('📖 Подробное руководство по настройке правил отслеживания (Delta Log)'); ?>
+            <?php echo $helper->__('📖 Detailed Guide to Configuring Tracking Rules (Delta Log)'); ?>
         </h4>
     </div>
-    <div class="fieldset fieldset-wide" style="background-color: #f8f9fa; border: 1px solid #ccd1d9; border-top: 0; padding: 15px 20px;">
-        <div style="font-size: 13px; line-height: 1.6; color: #2f2f2f;">
+    <div class="fieldset fieldset-wide deltalog-guide-outer-fieldset">
+        <div class="deltalog-guide-wrapper">
 
-            <div class="entry-edit-head" style="margin-top: 10px;">
-                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $helper->__('Архитектура и принцип работы'); ?></h4>
+            <div class="entry-edit-head deltalog-guide-section-head">
+                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $helper->__('📖 Architecture and Operating Principle'); ?></h4>
             </div>
-            <div class="fieldset" style="background-color: #fff; border: 1px solid #ccd1d9; border-top: 0; padding: 15px;">
-                <p style="margin-top: 0;">
-                    <?php echo $helper->__('Модуль <strong>Delta Log</strong> предназначен для точечного аудита изменений данных в OpenMage. Он фиксирует: <strong>кто</strong> (учетная запись админа), <strong>когда</strong> (дата/время), <strong>откуда</strong> (IP-адрес) и <strong>что именно</strong> поменял в объекте (старое и новое значение).'); ?>
-                </p>
-                <p style="margin-bottom: 0;">
-                    <?php echo $helper->__('<strong>Производительность:</strong> Чтобы не делать тяжелые запросы к базе данных при каждом клике или сохранении в интернет-магазине, правила логирования при сохранении компилируются в оптимизированный кэш OpenMage. Наблюдатель (Observer) мгновенно считывает эти правила из оперативной памяти.'); ?>
+            <div class="fieldset deltalog-guide-inner-fieldset">
+                <p class="deltalog-guide-paragraph-top">
+                    <?php echo $helper->__('The <strong>Delta Log</strong> module is designed for targeted data change auditing in OpenMage. It records: <strong>who</strong> (admin account, customer, Cron, or CLI process), <strong>when</strong> (date/time), <strong>where from</strong> (IP address), and <strong>what exactly</strong> changed in an object (previous and new value).'); ?>
                 </p>
             </div>
 
-            <!-- Подгружаемый блок руководства по General Configuration -->
             <?php echo $this->getChildHtml('instruction_general'); ?>
 
-            <!-- Подгружаемый блок руководства по Tracked Fields -->
             <?php echo $this->getChildHtml('instruction_fields'); ?>
 
-            <div class="entry-edit-head" style="margin-top: 25px;">
-                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $helper->__('Сравнение типов моделей (Flat Table vs EAV Model)'); ?></h4>
+            <div class="entry-edit-head deltalog-guide-section-head-spaced">
+                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $helper->__('📖 Tracking Scope and Logging Contexts'); ?></h4>
             </div>
-            <div class="fieldset" style="background-color: #fff; border: 1px solid #ccd1d9; border-top: 0; padding: 15px;">
-                <table style="width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #ccd1d9;" border="1" cellpadding="0" cellspacing="0">
+            <div class="fieldset deltalog-guide-inner-fieldset">
+                <p class="deltalog-guide-paragraph-top">
+                    <?php echo $helper->__('In the module system settings (<strong>System &rarr; Configuration &rarr; Delta Log</strong>), you can restrict the log collection scope to eliminate unnecessary noise:'); ?>
+                </p>
+                <ul class="deltalog-instruction-list">
+                    <li class="deltalog-instruction-item">
+                        <strong><?php echo $helper->__('Admin Panel Only:'); ?></strong> <?php echo $helper->__('Captures changes made manually by managers or administrators via Adminhtml.'); ?>
+                    </li>
+                    <li class="deltalog-instruction-item">
+                        <strong><?php echo $helper->__('Admin & Background Processes:'); ?></strong> <?php echo $helper->__('In addition to manager actions, logs Cron background tasks, CLI import/export scripts, and Web API calls.'); ?>
+                    </li>
+                    <li class="deltalog-instruction-item">
+                        <strong><?php echo $helper->__('Everywhere:'); ?></strong> <?php echo $helper->__('Tracks changes across all system areas, including customer actions on the Storefront.'); ?>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="entry-edit-head deltalog-guide-section-head-spaced">
+                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $helper->__('📖 Automatic Cleanup of Old Logs (Cron Cleanup)'); ?></h4>
+            </div>
+            <div class="fieldset deltalog-guide-inner-fieldset">
+                <p class="deltalog-guide-paragraph-top">
+                    <?php echo $helper->__('To prevent database bloating over time, the module includes an automated cleanup mechanism for outdated entries:'); ?>
+                </p>
+                <ul class="deltalog-instruction-list">
+                    <li class="deltalog-instruction-item">
+                        <strong><?php echo $helper->__('Cron Schedule:'); ?></strong> <?php echo $helper->__('The cleanup task runs daily at <strong>03:00 server time</strong>.'); ?>
+                    </li>
+                    <li class="deltalog-instruction-item">
+                        <strong><?php echo $helper->__('Log Retention:'); ?></strong> <?php echo $helper->__('Configured in days within the module configuration. All entries older than the specified threshold are automatically purged from the table.'); ?>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="entry-edit-head deltalog-guide-section-head-spaced">
+                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $helper->__('📖 Model Types Comparison (Flat Table vs EAV Model)'); ?></h4>
+            </div>
+            <div class="fieldset deltalog-guide-inner-fieldset">
+                <table class="deltalog-guide-table" border="1" cellpadding="0" cellspacing="0">
                     <thead>
-                    <tr style="background-color: #f6f6f6; text-align: left;">
-                        <th style="width: 20%; padding: 10px 12px; font-weight: bold; border: 1px solid #ccd1d9;"><?php echo $helper->__('Тип модели'); ?></th>
-                        <th style="width: 40%; padding: 10px 12px; font-weight: bold; border: 1px solid #ccd1d9;"><?php echo $helper->__('Как устроена'); ?></th>
-                        <th style="width: 40%; padding: 10px 12px; font-weight: bold; border: 1px solid #ccd1d9;"><?php echo $helper->__('Примеры в OpenMage'); ?></th>
+                    <tr class="deltalog-guide-table-header">
+                        <th class="col-model-type"><?php echo $helper->__('Model Type'); ?></th>
+                        <th class="col-model-structure"><?php echo $helper->__('Architecture'); ?></th>
+                        <th class="col-model-examples"><?php echo $helper->__('OpenMage Examples'); ?></th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr>
-                        <td style="padding: 10px 12px; vertical-align: top; border: 1px solid #ccd1d9;">
-                            <strong>Flat Table</strong><br/><em>(Плоская таблица)</em>
+                        <td class="deltalog-guide-td">
+                            <strong>Flat Table</strong><br/><em>(<?php echo $helper->__('Flat structure'); ?>)</em>
                         </td>
-                        <td style="padding: 10px 12px; vertical-align: top; border: 1px solid #ccd1d9;">
-                            <?php echo $helper->__('Все данные объекта хранятся в <strong>одной физической таблице MySQL</strong>. Каждая характеристика &mdash; отдельный столбец. Быстрый и простой вариант.'); ?>
+                        <td class="deltalog-guide-td">
+                            <?php echo $helper->__('All object data is stored in a <strong>single physical MySQL table</strong>. Each attribute corresponds to a separate column. Fast and straightforward.'); ?>
                         </td>
-                        <td style="padding: 10px 12px; vertical-align: top; border: 1px solid #ccd1d9;">
-                            &bull; <code>sales_flat_order</code> (Заказы)<br/>
-                            &bull; <code>salesrule</code> (Правила корзины)<br/>
-                            &bull; <code>admin_user</code> (Администраторы)
+                        <td class="deltalog-guide-td">
+                            &bull; <code>sales_flat_order</code> (<?php echo $helper->__('Orders'); ?>)<br/>
+                            &bull; <code>salesrule</code> (<?php echo $helper->__('Cart Price Rules'); ?>)<br/>
+                            &bull; <code>admin_user</code> (<?php echo $helper->__('Admin Users'); ?>)
                         </td>
                     </tr>
                     <tr>
-                        <td style="padding: 10px 12px; vertical-align: top; border: 1px solid #ccd1d9;">
+                        <td class="deltalog-guide-td">
                             <strong>EAV Model</strong><br/><em>(Entity-Attribute-Value)</em>
                         </td>
-                        <td style="padding: 10px 12px; vertical-align: top; border: 1px solid #ccd1d9;">
-                            <?php echo $helper->__('Данные распределены по серии таблиц: главная (<code>*_entity</code>) хранит ID, а атрибуты раскиданы по типам данных (<code>*_varchar</code>, <code>*_int</code>, <code>*_decimal</code>). Позволяет добавлять атрибуты «на лету».'); ?>
+                        <td class="deltalog-guide-td">
+                            <?php echo $helper->__('Data is distributed across multiple tables: the main entity table (<code>*_entity</code>) stores IDs, while attributes are spread by data type (<code>*_varchar</code>, <code>*_int</code>, <code>*_decimal</code>). Allows adding dynamic attributes on the fly.'); ?>
                         </td>
-                        <td style="padding: 10px 12px; vertical-align: top; border: 1px solid #ccd1d9;">
-                            &bull; <code>customer_entity</code> (Покупатели)<br/>
-                            &bull; <code>catalog_product_entity</code> (Товары)<br/>
-                            &bull; <code>catalog_category_entity</code> (Категории)
+                        <td class="deltalog-guide-td">
+                            &bull; <code>customer_entity</code> (<?php echo $helper->__('Customers'); ?>)<br/>
+                            &bull; <code>catalog_product_entity</code> (<?php echo $helper->__('Products'); ?>)<br/>
+                            &bull; <code>catalog_category_entity</code> (<?php echo $helper->__('Categories'); ?>)
                         </td>
                     </tr>
                     </tbody>
                 </table>
             </div>
 
-            <div class="entry-edit-head" style="margin-top: 25px;">
-                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $helper->__('📖 Пошаговый чек-лист проверки правила'); ?></h4>
+            <div class="entry-edit-head deltalog-guide-section-head-spaced">
+                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $helper->__('📖 Step-by-Step Rule Verification Checklist'); ?></h4>
             </div>
-            <div class="fieldset" style="background-color: #fff; border: 1px solid #ccd1d9; border-top: 0; padding: 15px;">
-                <ol style="margin: 0; padding-left: 20px; line-height: 1.8;">
-                    <li><?php echo $helper->__('Заполните основные параметры на вкладке <strong>General Configuration</strong> (включая корректный <code>Title Column Field</code>, например <code>email</code>).'); ?></li>
-                    <li><?php echo $helper->__('Перейдите во вкладку <strong>Tracked Fields</strong>, нажмите <strong>Fetch Fields</strong> и оставьте активными только нужные поля.'); ?></li>
-                    <li><?php echo $helper->__('Нажмите <strong>Save Rule</strong>. Модуль автоматически скомпилирует правила в кэш.'); ?></li>
-                    <li><?php echo $helper->__('Откройте целевой объект в админке (например, покупателя) и измените любое из отслеживаемых полей.'); ?></li>
-                    <li><?php echo $helper->__('Перейдите в меню <strong>System &rarr; Delta Log &rarr; Change Log History</strong> и убедитесь, что запись зафиксирована!'); ?></li>
+            <div class="fieldset deltalog-guide-inner-fieldset">
+                <ol class="deltalog-guide-checklist">
+                    <li><?php echo $helper->__('Fill in the basic parameters on the <strong>General Configuration</strong> tab (including a valid <code>Title Column Field</code>, e.g., <code>email</code>).'); ?></li>
+                    <li><?php echo $helper->__('Navigate to the <strong>Tracked Fields</strong> tab, click <strong>Fetch Fields</strong>, and leave active only the necessary fields.'); ?></li>
+                    <li><?php echo $helper->__('Click <strong>Save Rule</strong>. The module automatically compiles rules into the cache.'); ?></li>
+                    <li><?php echo $helper->__('Open the target entity in the admin panel (e.g., a customer) and modify any tracked field.'); ?></li>
+                    <li><?php echo $helper->__('Go to <strong>System &rarr; Delta Log &rarr; Change Log History</strong> and verify that the entry is recorded!'); ?></li>
                 </ol>
             </div>
 

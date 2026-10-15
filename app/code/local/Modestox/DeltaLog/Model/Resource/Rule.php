@@ -10,7 +10,7 @@
 class Modestox_DeltaLog_Model_Resource_Rule extends Mage_Core_Model_Resource_Db_Abstract
 {
     /**
-     * Initialize table and primary key
+     * Constructor.
      *
      * @return void
      */

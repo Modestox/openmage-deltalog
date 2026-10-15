@@ -10,23 +10,26 @@
 class Modestox_DeltaLog_Model_Processor
 {
     /**
-     * Helper instance
+     * Unique sentinel marker for explicit NULL representation in internal baseline array.
+     */
+    protected const NULL_SENTINEL = "\0__DELTALOG_NULL__\0";
+
+    /**
+     * Helper instance.
      *
      * @var Modestox_DeltaLog_Helper_Data|null
      */
     protected ?Modestox_DeltaLog_Helper_Data $_helper = null;
 
     /**
-     * Last value written to the log per "table|id|field" within this request.
-     * Model::getOrigData() is only refreshed by load(), so when the same object is saved twice
-     * in one request the second save would otherwise log the first change again.
+     * Baseline cache.
      *
-     * @var array<string, string>
+     * @var array<string, mixed>
      */
     protected static array $_baseline = [];
 
     /**
-     * Get module helper
+     * Get module helper.
      *
      * @return Modestox_DeltaLog_Helper_Data
      */
@@ -40,7 +43,7 @@ class Modestox_DeltaLog_Model_Processor
     }
 
     /**
-     * Process entity model changes and persist detected deltas
+     * Process entity model changes.
      *
      * @param Mage_Core_Model_Abstract $model
      * @return void
@@ -57,16 +60,11 @@ class Modestox_DeltaLog_Model_Processor
             return;
         }
 
-        $this->_getHelper()->debug(
-            sprintf(
-                'match: table "%s", id %s, %d tracked field(s)',
-                $tableName,
-                $model->getId(),
-                count($entityConfig['fields'])
-            )
-        );
-
         $entityId = (int)$model->getId();
+        if (!$entityId) {
+            return;
+        }
+
         $entityTitle = isset($entityConfig['title_field']) && $entityConfig['title_field']
             ? $this->valueToString($model->getData($entityConfig['title_field']))
             : null;
@@ -77,8 +75,11 @@ class Modestox_DeltaLog_Model_Processor
         $helper = $this->_getHelper();
 
         $rowsToInsert = [];
+        $pendingBaseline = [];
         $fields = $entityConfig['fields'];
         $origData = $model->getOrigData();
+
+        $isNewObject = $model->isObjectNew();
 
         foreach ($fields as $fieldCode => $fieldData) {
             if (!$model->hasData($fieldCode)) {
@@ -87,18 +88,28 @@ class Modestox_DeltaLog_Model_Processor
 
             $translatedLabel = $helper->__($fieldData['label']);
             $newValue = $model->getData($fieldCode);
-            $oldValue = is_array($origData) && array_key_exists($fieldCode, $origData)
-                ? $origData[$fieldCode]
-                : null;
+
+            $hasOrigKey = is_array($origData) && array_key_exists($fieldCode, $origData);
+            $oldValue = $hasOrigKey ? $origData[$fieldCode] : null;
 
             $baselineKey = $tableName . '|' . $entityId . '|' . $fieldCode;
-            $oldString = self::$_baseline[$baselineKey] ?? $this->valueToString($oldValue);
-            $newString = $this->valueToString($newValue);
 
-            $this->_getHelper()->debug(sprintf('CHECK [%s]: oldString="%s" (type: %s), newString="%s" (type: %s)', $fieldCode, $oldString, gettype($oldValue), $newString, gettype($newValue)));
+            $newBaselineVal = $newValue === null ? self::NULL_SENTINEL : $this->valueToString($newValue);
 
-            if ($this->hasFieldValueChanged($oldString, $newString, $fieldData)) {
-                self::$_baseline[$baselineKey] = $newString;
+            if (array_key_exists($baselineKey, self::$_baseline) && self::$_baseline[$baselineKey] === $newBaselineVal) {
+                continue;
+            }
+
+            $oldBaselineVal = self::$_baseline[$baselineKey]
+                ?? ($hasOrigKey ? ($oldValue === null ? self::NULL_SENTINEL : $this->valueToString($oldValue)) : self::NULL_SENTINEL);
+
+            if ($isNewObject && !$hasOrigKey && ($newValue === null || $newValue === '')) {
+                continue;
+            }
+
+            if ($this->hasFieldValueChanged($oldValue, $newValue, $oldBaselineVal, $newBaselineVal, $fieldData)) {
+                $pendingBaseline[$baselineKey] = $newBaselineVal;
+
                 $rowsToInsert[] = [
                     'user_name'    => $userName,
                     'ip_address'   => $ipAddress,
@@ -106,11 +117,20 @@ class Modestox_DeltaLog_Model_Processor
                     'entity_id'    => $entityId,
                     'entity_title' => $entityTitle,
                     'entity_info'  => $formattedEntityInfo,
-                    //'edit_url_route' => $entityConfig['edit_url_route'] ?? null,
                     'field_code'   => $fieldCode,
                     'field_label'  => $translatedLabel,
-                    'old_value'    => $this->transformValueToDisplayLabel($fieldData, $oldString, $fieldCode, $tableName),
-                    'new_value'    => $this->transformValueToDisplayLabel($fieldData, $newString, $fieldCode, $tableName),
+                    'old_value'    => ($isNewObject && !$hasOrigKey) ? '—' : $this->transformValueToDisplayLabel(
+                        $fieldData,
+                        $oldValue,
+                        $fieldCode,
+                        $tableName
+                    ),
+                    'new_value'    => $this->transformValueToDisplayLabel(
+                        $fieldData,
+                        $newValue,
+                        $fieldCode,
+                        $tableName
+                    ),
                     'created_at'   => Varien_Date::now(),
                 ];
             }
@@ -118,11 +138,15 @@ class Modestox_DeltaLog_Model_Processor
 
         if (!empty($rowsToInsert)) {
             $this->saveDeltaEntries($rowsToInsert);
+
+            foreach ($pendingBaseline as $key => $val) {
+                self::$_baseline[$key] = $val;
+            }
         }
     }
 
     /**
-     * Resolve database main table name for given model
+     * Resolve table name for model.
      *
      * @param Mage_Core_Model_Abstract $model
      * @return string
@@ -142,7 +166,7 @@ class Modestox_DeltaLog_Model_Processor
     }
 
     /**
-     * Scalars are trimmed, arrays/objects are JSON encoded.
+     * Convert value to string representation preserving whitespaces and strict scalar types.
      *
      * @param mixed $value
      * @return string
@@ -156,14 +180,14 @@ class Modestox_DeltaLog_Model_Processor
             return $value ? '1' : '0';
         }
         if (is_scalar($value)) {
-            return trim((string)$value);
+            return (string)$value;
         }
 
         return (string)json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PARTIAL_OUTPUT_ON_ERROR);
     }
 
     /**
-     * Only strips meaningless trailing zeros of decimals.
+     * Normalize decimal string.
      *
      * @param string $val
      * @return string
@@ -180,7 +204,7 @@ class Modestox_DeltaLog_Model_Processor
     }
 
     /**
-     * Build standardized entity info string (Title + ID)
+     * Build formatted entity info string.
      *
      * @param int $entityId
      * @param string|null $entityTitle
@@ -196,70 +220,146 @@ class Modestox_DeltaLog_Model_Processor
     }
 
     /**
-     * Check if old and new field values are distinct
+     * Check if field value changed.
      *
-     * @param string $oldVal
-     * @param string $newVal
+     * @param mixed $oldRaw
+     * @param mixed $newRaw
+     * @param mixed $oldBaseline
+     * @param mixed $newBaseline
      * @param array $fieldData
      * @return bool
      */
-    protected function hasFieldValueChanged(string $oldVal, string $newVal, array $fieldData): bool
+    protected function hasFieldValueChanged($oldRaw, $newRaw, $oldBaseline, $newBaseline, array $fieldData): bool
     {
-        if ($oldVal === $newVal) {
+        if ($oldBaseline === $newBaseline && $oldRaw === $newRaw) {
             return false;
         }
 
-        if ($this->normalizeDecimalString($oldVal) === $this->normalizeDecimalString($newVal)) {
-            return false;
+        if (($oldRaw === null && $newRaw === '') || ($oldRaw === '' && $newRaw === null)) {
+            return true;
         }
 
         $valueType = $fieldData['value_type'] ?? 'text';
-        $isDateType = ($valueType === 'date');
 
-        if ($isDateType || $this->matchesDateFormatPattern($oldVal) || $this->matchesDateFormatPattern($newVal)) {
-            $oldTime = strtotime($oldVal);
-            $newTime = strtotime($newVal);
+        switch ($valueType) {
+            case 'boolean':
+                $normalizeBoolean = static function ($value): string {
+                    if ($value === null || $value === '') {
+                        return self::NULL_SENTINEL;
+                    }
+                    if (in_array($value, [true, 1, '1'], true)) {
+                        return '1';
+                    }
+                    if (in_array($value, [false, 0, '0'], true)) {
+                        return '0';
+                    }
+                    return (string)$value;
+                };
 
-            if ($oldTime !== false && $newTime !== false) {
-                if (date('Y-m-d', $oldTime) === date('Y-m-d', $newTime)) {
+                if ($normalizeBoolean($oldRaw) === $normalizeBoolean($newRaw)) {
                     return false;
                 }
-            }
+                break;
+
+            case 'select':
+            case 'multiselect':
+                if ($oldRaw === $newRaw) {
+                    return false;
+                }
+                if ($oldRaw !== null && $newRaw !== null && (string)$oldRaw === (string)$newRaw) {
+                    return false;
+                }
+                break;
+
+            case 'date':
+            case 'datetime':
+                if ($oldRaw === null || $newRaw === null) {
+                    break;
+                }
+
+                $format = ($valueType === 'date') ? 'Y-m-d' : 'Y-m-d H:i:s';
+                $oldDate = $this->parseToDateTime((string)$oldRaw, $format);
+                $newDate = $this->parseToDateTime((string)$newRaw, $format);
+
+                if ($oldDate !== null && $newDate !== null) {
+                    if ($oldDate->format($format) === $newDate->format($format)) {
+                        return false;
+                    }
+                }
+                break;
+
+            case 'decimal':
+            case 'price':
+            case 'number':
+            case 'qty':
+                $oldStr = $oldRaw !== null ? (string)$oldRaw : '';
+                $newStr = $newRaw !== null ? (string)$newRaw : '';
+
+                if ($this->normalizeDecimalString($oldStr) === $this->normalizeDecimalString($newStr)) {
+                    return false;
+                }
+                break;
+
+            default:
+                if ($oldRaw !== null && $newRaw !== null && (string)$oldRaw === (string)$newRaw) {
+                    return false;
+                }
+                break;
         }
 
         return true;
     }
 
     /**
-     * Transform raw column value into human-readable label using source models, options or helper methods
+     * Safely parse raw string to DateTimeImmutable object.
+     *
+     * @param string $dateStr
+     * @param string $format
+     * @return DateTimeImmutable|null
+     */
+    protected function parseToDateTime(string $dateStr, string $format): ?DateTimeImmutable
+    {
+        try {
+            $dt = new DateTimeImmutable($dateStr);
+            return $dt;
+        } catch (Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Transform value to display label.
      *
      * @param array $fieldData
-     * @param string|null $value
+     * @param mixed $value
      * @param string $fieldCode
      * @param string $tableName
      * @return string|null
      */
-    protected function transformValueToDisplayLabel(array $fieldData, ?string $value, string $fieldCode = '', string $tableName = ''): ?string
+    protected function transformValueToDisplayLabel(array $fieldData, $value, string $fieldCode = '', string $tableName = ''): ?string
     {
-        if ($value === '' || $value === null) {
-            return '—';
+        if ($value === null) {
+            return '— (NULL)';
+        }
+
+        $strValue = $this->valueToString($value);
+        if ($strValue === '') {
+            return '— (empty)';
         }
 
         $helper = $this->_getHelper();
         $valueType = $fieldData['value_type'] ?? 'text';
 
-        if ($valueType === 'date' || $this->matchesDateFormatPattern($value)) {
-            $timestamp = strtotime($value);
+        if (($valueType === 'date' || $valueType === 'datetime') || $this->matchesDateFormatPattern($strValue)) {
+            $timestamp = strtotime($strValue);
             if ($timestamp !== false) {
-                return date('d.m.Y', $timestamp);
+                return $valueType === 'datetime' ? date('d.m.Y H:i:s', $timestamp) : date('d.m.Y', $timestamp);
             }
         }
 
         $options = $this->loadFieldOptionDictionary($fieldData, $fieldCode, $tableName);
 
         if (!empty($options)) {
-            $strValue = (string)$value;
-
             if (is_array($value) || strpos($strValue, ',') !== false) {
                 $valArray = is_array($value) ? $value : explode(',', $strValue);
                 $formattedValues = [];
@@ -281,11 +381,11 @@ class Modestox_DeltaLog_Model_Processor
             }
         }
 
-        return $value;
+        return $strValue;
     }
 
     /**
-     * Load options dictionary safely without instantiating eav/entity_attribute_source_table directly
+     * Load field option dictionary.
      *
      * @param array $fieldData
      * @param string $fieldCode
@@ -307,7 +407,6 @@ class Modestox_DeltaLog_Model_Processor
             $sourceClass = (string)$fieldData['source_model'];
 
             try {
-                // 1. Для системных EAV таблиц (eav/entity_attribute_source_table)
                 if ($sourceClass === 'eav/entity_attribute_source_table') {
                     if (!empty($code)) {
                         $entityTypeCode = !empty($tableName) ? str_replace('_entity', '', $tableName) : 'customer';
@@ -319,11 +418,11 @@ class Modestox_DeltaLog_Model_Processor
                             ->getFirstItem();
 
                         if ($attribute && $attribute->getId()) {
-                            // ИСПРАВЛЕННЫЙ АЛИАС: eav/entity_attribute_option_collection
                             $optionCollection = Mage::getResourceModel('eav/entity_attribute_option_collection');
 
                             if ($optionCollection) {
-                                $optionCollection->setAttributeFilter($attribute->getId())
+                                $optionCollection
+                                    ->setAttributeFilter($attribute->getId())
                                     ->setStoreFilter(Mage::app()->getStore()->getId());
 
                                 foreach ($optionCollection as $option) {
@@ -335,7 +434,6 @@ class Modestox_DeltaLog_Model_Processor
                     return $options;
                 }
 
-                // 2. Для автономных моделей (например, customer/customer_attribute_source_group)
                 $sourceModel = Mage::getModel($sourceClass) ?: Mage::getResourceModel($sourceClass);
 
                 if ($sourceModel) {
@@ -381,7 +479,7 @@ class Modestox_DeltaLog_Model_Processor
     }
 
     /**
-     * Detect if value matches standard date/datetime formats
+     * Check if string matches date format pattern.
      *
      * @param string $val
      * @return bool
@@ -392,35 +490,58 @@ class Modestox_DeltaLog_Model_Processor
     }
 
     /**
-     * Resolve active user identity (Admin or Customer)
+     * Resolve current user name.
      *
      * @return string
      */
     protected function resolveCurrentUserName(): string
     {
-        if (Mage::app()->getStore()->isAdmin()) {
-            $adminUser = Mage::getSingleton('admin/session')->getUser();
-            if ($adminUser && $adminUser->getId()) {
-                return $adminUser->getUsername() . ' (Admin)';
-            }
+        $helper = Mage::helper('modestox_deltalog');
+
+        switch ($helper->detectContext()) {
+            case Modestox_DeltaLog_Helper_Data::CONTEXT_ADMIN:
+                $adminUser = Mage::getSingleton('admin/session')->getUser();
+
+                return $adminUser && $adminUser->getId()
+                    ? $adminUser->getUsername() . ' (Admin)'
+                    : 'Admin (unknown user)';
+
+            case Modestox_DeltaLog_Helper_Data::CONTEXT_BACKGROUND:
+                $script = basename((string)($_SERVER['SCRIPT_NAME'] ?? ''));
+                if ($script === 'cron.php') {
+                    return PHP_SAPI === 'cli' ? 'Cron Process' : 'Cron Process (web)';
+                }
+                if (PHP_SAPI === 'cli') {
+                    return sprintf('CLI (%s)', $script !== '' ? $script : 'script');
+                }
+
+                return 'Web API';
         }
 
-        return 'System / CLI';
+        /** @var Mage_Customer_Model_Session $customerSession */
+        $customerSession = Mage::getSingleton('customer/session');
+        if ($customerSession->isLoggedIn()) {
+            return sprintf('Customer #%d [Customer]', (int)$customerSession->getCustomerId());
+        }
+
+        return 'Guest / Frontend System';
     }
 
     /**
-     * Perform bulk insert of generated delta log entries into database
+     * Save delta entries.
      *
      * @param array $rowsToInsert
      * @return void
+     * @throws Exception
      */
     protected function saveDeltaEntries(array $rowsToInsert): void
     {
         $resource = Mage::getSingleton('core/resource');
         $writeAdapter = $resource->getConnection('core_write');
+
         $writeAdapter->insertMultiple(
             $resource->getTableName('modestox_deltalog/entry'),
-            $rowsToInsert
+            $rowsToInsert,
         );
     }
 }

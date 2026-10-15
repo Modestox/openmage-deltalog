@@ -42,11 +42,31 @@
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
                         </enabled>
+                        <tracking_mode translate="label comment">
+                            <label>Tracking Area Scope</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>modestox_deltalog/adminhtml_system_config_source_trackingMode</source_model>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <comment>Select which environments are covered by change tracking (Admin, Cron/CLI/API, or Frontend).</comment>
+                        </tracking_mode>
+                        <retention_days translate="label comment">
+                            <label>Log Retention Period (Days)</label>
+                            <frontend_type>text</frontend_type>
+                            <validate>validate-digits</validate>
+                            <sort_order>30</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <comment>Number of days to keep change logs in database (e.g. 120). Older records will be purged automatically by Cron job.</comment>
+                        </retention_days>
                         <debug translate="label comment">
                             <label>Debug logging</label>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>20</sort_order>
+                            <sort_order>40</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>

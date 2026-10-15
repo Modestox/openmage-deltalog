@@ -10,7 +10,7 @@
 class Modestox_DeltaLog_Model_Entry extends Mage_Core_Model_Abstract
 {
     /**
-     * Initialize resource model
+     * Constructor.
      *
      * @return void
      */

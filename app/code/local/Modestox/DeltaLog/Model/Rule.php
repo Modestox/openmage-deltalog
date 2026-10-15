@@ -10,7 +10,7 @@
 class Modestox_DeltaLog_Model_Rule extends Mage_Core_Model_Abstract
 {
     /**
-     * Initialize resource model
+     * Constructor.
      *
      * @return void
      */
@@ -20,7 +20,7 @@ class Modestox_DeltaLog_Model_Rule extends Mage_Core_Model_Abstract
     }
 
     /**
-     * Get associated active fields collection for this rule
+     * Get active fields collection.
      *
      * @return Modestox_DeltaLog_Model_Resource_Rule_Field_Collection
      */
@@ -36,9 +36,9 @@ class Modestox_DeltaLog_Model_Rule extends Mage_Core_Model_Abstract
     }
 
     /**
-     * Recompile rules cache after rule save
+     * Handle actions after save.
      *
-     * @return parent::_afterSave()
+     * @return self
      */
     protected function _afterSave()
     {
@@ -52,9 +52,9 @@ class Modestox_DeltaLog_Model_Rule extends Mage_Core_Model_Abstract
     }
 
     /**
-     * Recompile delta rules cache after model delete
+     * Handle actions after delete.
      *
-     * @return Modestox_DeltaLog_Model_Rule
+     * @return self
      */
     protected function _afterDelete(): self
     {
