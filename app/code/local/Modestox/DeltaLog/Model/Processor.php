@@ -231,15 +231,42 @@ class Modestox_DeltaLog_Model_Processor
      */
     protected function hasFieldValueChanged($oldRaw, $newRaw, $oldBaseline, $newBaseline, array $fieldData): bool
     {
-        if ($oldBaseline === $newBaseline && $oldRaw === $newRaw) {
+        if (is_array($oldRaw) || is_array($newRaw)) {
+            $oldArr = is_array($oldRaw) ? $oldRaw : [];
+            $newArr = is_array($newRaw) ? $newRaw : [];
+
+            if ($this->isPriceStructureArray($oldArr) || $this->isPriceStructureArray($newArr)) {
+                $oldNormalized = $this->normalizePriceArray($oldArr);
+                $newNormalized = $this->normalizePriceArray($newArr);
+            } else {
+                $oldNormalized = $this->normalizeGenericArray($oldArr);
+                $newNormalized = $this->normalizeGenericArray($newArr);
+            }
+
+            return json_encode($oldNormalized, JSON_UNESCAPED_UNICODE) !== json_encode($newNormalized, JSON_UNESCAPED_UNICODE);
+        }
+
+        $oldIsEmpty = ($oldRaw === null || $oldRaw === '');
+        $newIsEmpty = ($newRaw === null || $newRaw === '');
+
+        if ($oldIsEmpty && $newIsEmpty) {
             return false;
         }
 
-        if (($oldRaw === null && $newRaw === '') || ($oldRaw === '' && $newRaw === null)) {
-            return true;
+        $valueType = $fieldData['value_type'] ?? 'text';
+
+        if (in_array($valueType, ['decimal', 'price', 'number', 'qty'], true)) {
+            $oldNormalized = $oldRaw !== null ? $this->normalizeDecimalString((string)$oldRaw) : '';
+            $newNormalized = $newRaw !== null ? $this->normalizeDecimalString((string)$newRaw) : '';
+
+            if ($oldNormalized === $newNormalized) {
+                return false;
+            }
         }
 
-        $valueType = $fieldData['value_type'] ?? 'text';
+        if ($oldBaseline === $newBaseline && $oldRaw === $newRaw) {
+            return false;
+        }
 
         switch ($valueType) {
             case 'boolean':
@@ -273,8 +300,8 @@ class Modestox_DeltaLog_Model_Processor
 
             case 'date':
             case 'datetime':
-                if ($oldRaw === null || $newRaw === null) {
-                    break;
+                if ($oldIsEmpty || $newIsEmpty) {
+                    return false;
                 }
 
                 $format = ($valueType === 'date') ? 'Y-m-d' : 'Y-m-d H:i:s';
@@ -285,18 +312,6 @@ class Modestox_DeltaLog_Model_Processor
                     if ($oldDate->format($format) === $newDate->format($format)) {
                         return false;
                     }
-                }
-                break;
-
-            case 'decimal':
-            case 'price':
-            case 'number':
-            case 'qty':
-                $oldStr = $oldRaw !== null ? (string)$oldRaw : '';
-                $newStr = $newRaw !== null ? (string)$newRaw : '';
-
-                if ($this->normalizeDecimalString($oldStr) === $this->normalizeDecimalString($newStr)) {
-                    return false;
                 }
                 break;
 
@@ -342,6 +357,14 @@ class Modestox_DeltaLog_Model_Processor
             return '— (NULL)';
         }
 
+        if (is_array($value)) {
+            $normalized = $this->isPriceStructureArray($value)
+                ? $this->normalizePriceArray($value)
+                : $this->normalizeGenericArray($value);
+
+            return json_encode($normalized, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        }
+
         $strValue = $this->valueToString($value);
         if ($strValue === '') {
             return '— (empty)';
@@ -349,6 +372,10 @@ class Modestox_DeltaLog_Model_Processor
 
         $helper = $this->_getHelper();
         $valueType = $fieldData['value_type'] ?? 'text';
+
+        if (in_array($valueType, ['decimal', 'price', 'number', 'qty'], true) && is_numeric($strValue)) {
+            return number_format((float)$strValue, 2, '.', '');
+        }
 
         if (($valueType === 'date' || $valueType === 'datetime') || $this->matchesDateFormatPattern($strValue)) {
             $timestamp = strtotime($strValue);
@@ -525,6 +552,102 @@ class Modestox_DeltaLog_Model_Processor
         }
 
         return 'Guest / Frontend System';
+    }
+
+    /**
+     * Check if array represents Tier Price or Group Price structures.
+     *
+     * @param array $data
+     * @return bool
+     */
+    protected function isPriceStructureArray(array $data): bool
+    {
+        $firstItem = reset($data);
+
+        return is_array($firstItem) && (
+            isset($firstItem['cust_group']) ||
+            isset($firstItem['price']) ||
+            isset($firstItem['price_qty']) ||
+            isset($firstItem['all_groups'])
+        );
+    }
+
+    /**
+     * Normalize Tier Price / Group Price arrays to eliminate false diffs caused by non-significant field ordering or string formatting.
+     *
+     * @param array $data
+     * @return array
+     */
+    protected function normalizePriceArray(array $data): array
+    {
+        $normalized = [];
+
+        foreach ($data as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            if (isset($row['delete']) && (string)$row['delete'] === '1') {
+                continue;
+            }
+
+            $cleanRow = [];
+
+            if (isset($row['website_id'])) {
+                $cleanRow['website_id'] = (int)$row['website_id'];
+            }
+
+            if (isset($row['cust_group'])) {
+                $cleanRow['cust_group'] = (int)$row['cust_group'];
+            } elseif (isset($row['all_groups']) && (int)$row['all_groups'] === 1) {
+                $cleanRow['cust_group'] = 0;
+            }
+
+            if (isset($row['price_qty'])) {
+                $cleanRow['price_qty'] = (float)$row['price_qty'];
+            }
+
+            if (isset($row['price'])) {
+                $cleanRow['price'] = (float)$row['price'];
+            }
+
+            if (isset($row['is_percent'])) {
+                $cleanRow['is_percent'] = (int)(bool)$row['is_percent'];
+            }
+
+            ksort($cleanRow);
+            $normalized[] = $cleanRow;
+        }
+
+        usort($normalized, static function ($a, $b) {
+            $grpA = $a['cust_group'] ?? 0;
+            $grpB = $b['cust_group'] ?? 0;
+            if ($grpA !== $grpB) {
+                return $grpA <=> $grpB;
+            }
+            $qtyA = $a['price_qty'] ?? 0;
+            $qtyB = $b['price_qty'] ?? 0;
+            return $qtyA <=> $qtyB;
+        });
+
+        return $normalized;
+    }
+
+    /**
+     * Normalize generic arrays.
+     *
+     * @param array $data
+     * @return array
+     */
+    protected function normalizeGenericArray(array $data): array
+    {
+        $clean = array_map(static function ($item) {
+            return is_scalar($item) ? (string)$item : $item;
+        }, $data);
+
+        sort($clean);
+
+        return $clean;
     }
 
     /**
